@@ -3,6 +3,7 @@ const cors = require('cors');
 const dotenv = require('dotenv');
 
 const connectDB = require('./config/db');
+const authRoutes = require('./routes/authRoutes');
 
 dotenv.config();
 
@@ -18,15 +19,26 @@ app.use(
 );
 app.use(express.json());
 
+app.get('/api/health', (req, res) => {
+  res.status(200).json({
+    success: true,
+    message: 'CampusStash backend is running',
+  });
+});
+
+app.use('/api/auth', authRoutes);
+
 app.get('/', (req, res) => {
   res.send('CampusStash backend is running');
 });
 
-connectDB().then(() => {
-  app.listen(PORT, () => {
-    console.log(`Server running on port ${PORT}`);
+connectDB()
+  .then(() => {
+    app.listen(PORT, () => {
+      console.log(`Server running on port ${PORT}`);
+    });
+  })
+  .catch((error) => {
+    console.error('Server startup failed:', error.message);
+    process.exit(1);
   });
-}).catch((error) => {
-  console.error('Server startup failed:', error.message);
-  process.exit(1);
-});
