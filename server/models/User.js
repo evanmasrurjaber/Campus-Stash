@@ -64,23 +64,15 @@ const userSchema = new mongoose.Schema(
   }
 );
 
-userSchema.pre('save', async function preSave(next) {
-  if (!this.isModified('password')) return next();
+userSchema.pre('save', async function preSave() {
+  if (!this.isModified('password')) return;
 
-  try {
-    const saltRounds = 10;
-    this.password = await bcrypt.hash(this.password, saltRounds);
-    next();
-  } catch (error) {
-    next(error);
-  }
+  const saltRounds = 10;
+  this.password = await bcrypt.hash(this.password, saltRounds);
 });
 
 userSchema.methods.comparePassword = async function comparePassword(candidatePassword) {
   return bcrypt.compare(candidatePassword, this.password);
 };
-
-userSchema.index({ email: 1 });
-userSchema.index({ studentId: 1 });
 
 module.exports = mongoose.model('User', userSchema);
