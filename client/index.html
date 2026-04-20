@@ -1,12 +1,173 @@
 <!doctype html>
-<html lang="en">
+<html class="light" lang="en">
   <head>
     <meta charset="UTF-8" />
-    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>client</title>
+    <title>CampusStash</title>
+
+    <script>
+      tailwind = {
+        config: {
+          darkMode: 'class',
+          theme: {
+            extend: {
+              colors: {
+                'primary-fixed-dim': '#bdc2ff',
+                primary: '#000666',
+                'surface-bright': '#fbf8ff',
+                'on-primary': '#ffffff',
+                'surface-container-low': '#f5f2fb',
+                'secondary-container': '#fd9000',
+                secondary: '#8e4e00',
+                'outline-variant': '#c6c5d4',
+                'inverse-on-surface': '#f2eff8',
+                'on-tertiary-fixed': '#151f00',
+                'on-error': '#ffffff',
+                'inverse-primary': '#bdc2ff',
+                'surface-container-highest': '#e4e1ea',
+                'surface-container-high': '#eae7ef',
+                'on-secondary-fixed-variant': '#6c3a00',
+                'surface-dim': '#dbd9e1',
+                'inverse-surface': '#303036',
+                'tertiary-fixed-dim': '#a6d700',
+                'secondary-fixed': '#ffdcc1',
+                'surface-tint': '#4c56af',
+                'surface-container': '#efecf5',
+                tertiary: '#151f00',
+                'surface-container-lowest': '#ffffff',
+                'on-secondary-fixed': '#2e1500',
+                error: '#ba1a1a',
+                'tertiary-container': '#273500',
+                'primary-container': '#1a237e',
+                outline: '#767683',
+                'on-tertiary-container': '#7fa500',
+                'on-secondary-container': '#613400',
+                'tertiary-fixed': '#bef500',
+                surface: '#fbf8ff',
+                'secondary-fixed-dim': '#ffb778',
+                'on-tertiary-fixed-variant': '#3a4d00',
+                'on-error-container': '#93000a',
+                'on-background': '#1b1b21',
+                'error-container': '#ffdad6',
+                'on-primary-fixed-variant': '#343d96',
+                background: '#fbf8ff',
+                'on-primary-fixed': '#000767',
+                'on-tertiary': '#ffffff',
+                'on-secondary': '#ffffff',
+                'on-surface': '#1b1b21',
+                'on-primary-container': '#8690ee',
+                'surface-variant': '#e4e1ea',
+                'on-surface-variant': '#454652',
+                'primary-fixed': '#e0e0ff',
+              },
+              fontFamily: {
+                headline: ['Plus Jakarta Sans', 'sans-serif'],
+                body: ['Inter', 'sans-serif'],
+                label: ['Inter', 'sans-serif'],
+              },
+              borderRadius: {
+                DEFAULT: '0.25rem',
+                lg: '0.5rem',
+                xl: '0.75rem',
+                full: '9999px',
+              },
+            },
+          },
+        },
+      };
+    </script>
+    <script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+    <script id="tailwind-config">
+      tailwind.config = {
+        darkMode: "class",
+        theme: {
+          extend: {
+            colors: {
+              "primary-fixed-dim": "#bdc2ff",
+              "primary": "#000666",
+              "surface-bright": "#fbf8ff",
+              "on-primary": "#ffffff",
+              "surface-container-low": "#f5f2fb",
+              "secondary-container": "#fd9000",
+              "secondary": "#8e4e00",
+              "outline-variant": "#c6c5d4",
+              "inverse-on-surface": "#f2eff8",
+              "on-tertiary-fixed": "#151f00",
+              "on-error": "#ffffff",
+              "inverse-primary": "#bdc2ff",
+              "surface-container-highest": "#e4e1ea",
+              "surface-container-high": "#eae7ef",
+              "on-secondary-fixed-variant": "#6c3a00",
+              "surface-dim": "#dbd9e1",
+              "inverse-surface": "#303036",
+              "tertiary-fixed-dim": "#a6d700",
+              "secondary-fixed": "#ffdcc1",
+              "surface-tint": "#4c56af",
+              "surface-container": "#efecf5",
+              "tertiary": "#151f00",
+              "surface-container-lowest": "#ffffff",
+              "on-secondary-fixed": "#2e1500",
+              "error": "#ba1a1a",
+              "tertiary-container": "#273500",
+              "primary-container": "#1a237e",
+              "outline": "#767683",
+              "on-tertiary-container": "#7fa500",
+              "on-secondary-container": "#613400",
+              "tertiary-fixed": "#bef500",
+              "surface": "#fbf8ff",
+              "secondary-fixed-dim": "#ffb778",
+              "on-tertiary-fixed-variant": "#3a4d00",
+              "on-error-container": "#93000a",
+              "on-background": "#1b1b21",
+              "error-container": "#ffdad6",
+              "on-primary-fixed-variant": "#343d96",
+              "background": "#fbf8ff",
+              "on-primary-fixed": "#000767",
+              "on-tertiary": "#ffffff",
+              "on-secondary": "#ffffff",
+              "on-surface": "#1b1b21",
+              "on-primary-container": "#8690ee",
+              "surface-variant": "#e4e1ea",
+              "on-surface-variant": "#454652",
+              "primary-fixed": "#e0e0ff"
+            },
+            fontFamily: {
+              "headline": ["Plus Jakarta Sans"],
+              "body": ["Inter"],
+              "label": ["Inter"]
+            },
+            borderRadius: {"DEFAULT": "0.25rem", "lg": "0.5rem", "xl": "0.75rem", "full": "9999px"},
+          },
+        },
+      }
+    </script>
+
+    <link
+      href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=Inter:wght@400;500;600;700&display=swap"
+      rel="stylesheet"
+    />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap"
+      rel="stylesheet"
+    />
+
+    <style>
+      .material-symbols-outlined {
+        font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+      }
+
+      .glass-header {
+        background: rgba(251, 248, 255, 0.7);
+        backdrop-filter: blur(20px);
+      }
+
+      .academic-gradient {
+        background: linear-gradient(135deg, #000666 0%, #1a237e 100%);
+      }
+    </style>
   </head>
-  <body>
+
+  <body class="bg-surface">
     <div id="root"></div>
     <script type="module" src="/src/main.jsx"></script>
   </body>

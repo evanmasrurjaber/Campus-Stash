@@ -1,9 +1,11 @@
 # CampusStash Backend (Express + MongoDB Atlas)
 
 ## Setup
-1. Install dependencies:
+1. Create .env file in /server folder
+2. Paste the necessary environment variables into .env:
+3. Install dependencies:
    - `npm install`
-2. Start development server:
+4. Start development server:
    - `npm run dev`
 
 ## API
