@@ -1,5 +1,7 @@
 import { useEffect, useState } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
+import AuthFooter from '../components/auth/AuthFooter';
+import AuthNavbar from '../components/auth/AuthNavbar';
 import { useAuth } from '../hooks/useAuth';
 
 const HERO_IMAGE =
@@ -11,7 +13,7 @@ export default function LoginPage() {
     password: '',
   });
 
-  const { login } = useAuth();
+  const { login, authLoading } = useAuth();
   const navigate = useNavigate();
   const location = useLocation();
   const redirectTo = location.state?.from?.pathname || '/dashboard';
@@ -35,8 +37,16 @@ export default function LoginPage() {
     navigate('/signup');
   };
 
+  const onForgotPasswordClick = (event) => {
+    event.preventDefault();
+    navigate('/forgot-password', {
+      state: { email: form.email.trim().toLowerCase() },
+    });
+  };
+
   const onSubmit = async (event) => {
     event.preventDefault();
+    if (authLoading) return;
 
     try {
       await login({
@@ -46,25 +56,21 @@ export default function LoginPage() {
 
       navigate(redirectTo, { replace: true });
     } catch (submitError) {
-      window.alert(submitError.message || 'Login failed');
+      if (submitError.code === 'EMAIL_NOT_VERIFIED') {
+        navigate('/verify-email', { 
+          state: { email: submitError.email } 
+        });
+      } else {
+        window.alert(submitError.message || 'Login failed');
+      }
     }
   };
 
   return (
-    <>
-      {/* TopNavBar Suppression Check: This is a Focused Journey (Login), but we include a minimalist brand anchor per design system */}
-      <nav className="fixed top-0 w-full flex justify-between items-center px-6 py-4 z-50 glass-header">
-        <div className="text-xl font-extrabold text-primary tracking-tighter font-headline">
-          CampusStash
-        </div>
-        <div className="flex items-center gap-4">
-          <a className="text-sm font-semibold text-primary/60 hover:text-primary transition-colors" href="#">
-            Help
-          </a>
-        </div>
-      </nav>
+    <div className="min-h-screen flex flex-col bg-surface font-body text-on-surface">
+      <AuthNavbar />
 
-      <main className="flex-grow flex items-center justify-center px-4 pt-20 pb-12">
+      <main className="flex-1 flex items-center justify-center px-4 py-20">
         <div className="w-full max-w-6xl grid grid-cols-1 md:grid-cols-2 gap-8 items-center">
           {/* Left Side: Editorial Content */}
           <div className="hidden md:flex flex-col justify-center space-y-8 pr-12">
@@ -139,9 +145,13 @@ export default function LoginPage() {
                     <label className="block text-xs font-bold uppercase tracking-widest text-primary/70" htmlFor="password">
                       Password
                     </label>
-                    <a className="text-xs font-semibold text-secondary hover:underline" href="#">
+                    <button
+                      type="button"
+                      onClick={onForgotPasswordClick}
+                      className="text-xs font-semibold text-secondary hover:underline"
+                    >
                       Forgot Password?
-                    </a>
+                    </button>
                   </div>
                   <div className="relative">
                     <span
@@ -162,10 +172,11 @@ export default function LoginPage() {
                 </div>
 
                 <button
-                  className="w-full academic-gradient text-on-primary font-headline font-bold py-4 rounded-xl shadow-lg hover:shadow-primary-container/20 active:scale-[0.98] transition-all flex items-center justify-center gap-2"
+                  className="w-full academic-gradient text-on-primary font-headline font-bold py-4 rounded-xl shadow-lg hover:shadow-primary-container/20 active:scale-[0.98] transition-all flex items-center justify-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:shadow-none disabled:active:scale-100"
                   type="submit"
+                  disabled={authLoading}
                 >
-                  Log In
+                  {authLoading ? 'Logging In...' : 'Log In'}
                   <span className="material-symbols-outlined text-sm" data-icon="arrow_forward">
                     arrow_forward
                   </span>
@@ -219,11 +230,7 @@ export default function LoginPage() {
         </div>
       </main>
 
-      {/* Footer Information (Non-Nav) */}
-      <footer className="py-8 text-center text-[10px] uppercase tracking-widest text-outline font-bold">
-        © 2024 CampusStash — Intellectual Property of Academic Curators
-      </footer>
-      {/* Mobile Bottom Navigation Suppression: Login is a focused task, but per instructions we omit Top/Side nav for focused journeys. BottomNavBar is only for top-level destinations. */}
-    </>
+      <AuthFooter />
+    </div>
   );
 }

@@ -1,5 +1,7 @@
 import { useEffect, useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
+import AuthFooter from '../components/auth/AuthFooter';
+import AuthNavbar from '../components/auth/AuthNavbar';
 import { useAuth } from '../hooks/useAuth';
 
 export default function SignupPage() {
@@ -88,25 +90,10 @@ export default function SignupPage() {
   };
 
   return (
-    <>
-      <nav className="fixed top-0 w-full flex justify-between items-center px-6 py-4 bg-[#fbf8ff]/70 backdrop-blur-md z-50">
-        <Link to="/login" className="text-xl font-extrabold text-[#000666] tracking-tighter font-headline">
-          CampusStash
-        </Link>
-        <div className="hidden md:flex gap-8 items-center">
-          <a className="text-[#1b1b21]/60 font-label text-sm hover:text-[#000666] transition-colors" href="mailto:support@campusstash.com">
-            Help
-          </a>
-          <Link
-            className="academic-gradient text-white px-5 py-2 rounded-lg font-bold text-sm shadow-sm scale-100 active:scale-95 transition-transform"
-            to="/login"
-          >
-            Login
-          </Link>
-        </div>
-      </nav>
+    <div className="min-h-screen flex flex-col bg-surface font-body text-on-surface">
+      <AuthNavbar />
 
-      <main className="pt-24 pb-32 px-6 flex flex-col lg:flex-row items-center justify-center min-h-screen gap-12 max-w-7xl mx-auto">
+      <main className="flex-1 px-6 py-20 flex flex-col lg:flex-row items-center justify-center gap-12 max-w-7xl mx-auto w-full">
         <div className="w-full lg:w-1/2 flex flex-col gap-6">
           <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-surface-container-high w-fit">
             <span className="material-symbols-outlined text-primary text-sm">verified_user</span>
@@ -319,16 +306,7 @@ export default function SignupPage() {
         </div>
       </main>
 
-      <div className="fixed bottom-0 left-0 w-full md:hidden flex justify-around items-center p-4 bg-[#fbf8ff]/70 backdrop-blur-md z-50 rounded-t-2xl shadow-[0_-8px_24px_rgba(27,27,33,0.06)]">
-        <Link className="flex flex-col items-center justify-center text-[#1b1b21]/60 px-6 py-2 transition-all" to="/login">
-          <span className="material-symbols-outlined">login</span>
-          <span className="font-label text-[10px] uppercase tracking-widest font-bold mt-1">Login</span>
-        </Link>
-        <span className="flex flex-col items-center justify-center academic-gradient text-white rounded-xl px-6 py-2 scale-110">
-          <span className="material-symbols-outlined">person_add</span>
-          <span className="font-label text-[10px] uppercase tracking-widest font-bold mt-1">Sign Up</span>
-        </span>
-      </div>
-    </>
+      <AuthFooter />
+    </div>
   );
 }
