@@ -1,9 +1,13 @@
 import { createContext, useEffect, useMemo, useState } from 'react';
 import {
+  forgotPassword as forgotPasswordApi,
   getApiErrorMessage,
   getMe,
   login as loginApi,
+  resetPassword as resetPasswordApi,
   signup as signupApi,
+  verifyEmail as verifyEmailApi,
+  resendCode as resendCodeApi,
   tokenStore,
 } from '../services/api';
 
@@ -51,6 +55,13 @@ export function AuthProvider({ children }) {
       setUser(data.user);
       return data;
     } catch (error) {
+      // Check if it's an unverified email error (403)
+      if (error.response?.status === 403) {
+        const err = new Error(getApiErrorMessage(error, 'Email not verified'));
+        err.code = 'EMAIL_NOT_VERIFIED';
+        err.email = credentials.email;
+        throw err;
+      }
       throw new Error(getApiErrorMessage(error, 'Login failed'));
     } finally {
       setAuthLoading(false);
@@ -76,6 +87,56 @@ export function AuthProvider({ children }) {
     setUser(null);
   };
 
+  const verifyEmail = async (code) => {
+    setAuthLoading(true);
+    try {
+      const data = await verifyEmailApi(code);
+      tokenStore.set(data.accessToken);
+      setUser(data.user);
+      return data;
+    } catch (error) {
+      throw new Error(getApiErrorMessage(error, 'Email verification failed'));
+    } finally {
+      setAuthLoading(false);
+    }
+  };
+
+  const resendCode = async (email) => {
+    setAuthLoading(true);
+    try {
+      const data = await resendCodeApi(email);
+      return data;
+    } catch (error) {
+      throw new Error(getApiErrorMessage(error, 'Failed to resend verification code'));
+    } finally {
+      setAuthLoading(false);
+    }
+  };
+
+  const forgotPassword = async (email) => {
+    setAuthLoading(true);
+    try {
+      const data = await forgotPasswordApi(email);
+      return data;
+    } catch (error) {
+      throw new Error(getApiErrorMessage(error, 'Failed to send reset code'));
+    } finally {
+      setAuthLoading(false);
+    }
+  };
+
+  const resetPassword = async (token, newPassword) => {
+    setAuthLoading(true);
+    try {
+      const data = await resetPasswordApi(token, newPassword);
+      return data;
+    } catch (error) {
+      throw new Error(getApiErrorMessage(error, 'Failed to reset password'));
+    } finally {
+      setAuthLoading(false);
+    }
+  };
+
   const value = useMemo(
     () => ({
       user,
@@ -85,6 +146,10 @@ export function AuthProvider({ children }) {
       login,
       signup,
       logout,
+      verifyEmail,
+      resendCode,
+      forgotPassword,
+      resetPassword,
     }),
     [user, isBootstrapping, authLoading],
   );
