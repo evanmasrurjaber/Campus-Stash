@@ -140,7 +140,7 @@ export default function SignupPage() {
                     className="w-full pl-10 pr-4 py-3 bg-surface-container-low border-none rounded-lg focus:ring-2 focus:ring-primary/20 text-on-surface placeholder:text-outline/60 transition-all"
                     id="fullName"
                     name="fullName"
-                    placeholder="Alex Taylor"
+                    placeholder="Ali Zafar"
                     type="text"
                     value={form.fullName}
                     onChange={onChange}
@@ -229,7 +229,7 @@ export default function SignupPage() {
                       className="w-full pl-10 pr-4 py-3 bg-surface-container-low border-none rounded-lg focus:ring-2 focus:ring-primary/20 text-on-surface placeholder:text-outline/60 transition-all"
                       id="password"
                       name="password"
-                      placeholder="At least 8 chars with uppercase, lowercase, number, symbol"
+                      placeholder="Enter password"
                       type="password"
                       value={form.password}
                       onChange={onChange}

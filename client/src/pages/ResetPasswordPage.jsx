@@ -7,13 +7,18 @@ import { useAuth } from '../hooks/useAuth';
 export default function ResetPasswordPage() {
   const location = useLocation();
   const navigate = useNavigate();
-  const { resetPassword, authLoading } = useAuth();
+  const { resetPassword, forgotPassword, authLoading } = useAuth();
   const [code, setCode] = useState(['', '', '', '', '', '']);
   const [newPassword, setNewPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
   const [error, setError] = useState('');
+  const [resendCooldown, setResendCooldown] = useState(120);
   const email = location.state?.email || '';
   const inputRefs = useRef([]);
+  const canResend = Boolean(email) && !authLoading && resendCooldown === 0;
+  const cooldownLabel = `${String(Math.floor(resendCooldown / 60)).padStart(2, '0')}:${String(
+    resendCooldown % 60,
+  ).padStart(2, '0')}`;
 
   useEffect(() => {
     const previousBodyClass = document.body.className;
@@ -23,6 +28,24 @@ export default function ResetPasswordPage() {
       document.body.className = previousBodyClass;
     };
   }, []);
+
+  useEffect(() => {
+    if (resendCooldown <= 0) return undefined;
+
+    const timerId = window.setInterval(() => {
+      setResendCooldown((prev) => {
+        if (prev <= 1) {
+          window.clearInterval(timerId);
+          return 0;
+        }
+        return prev - 1;
+      });
+    }, 1000);
+
+    return () => {
+      window.clearInterval(timerId);
+    };
+  }, [resendCooldown]);
 
   const handleCodeChange = (index, value) => {
     if (!/^\d*$/.test(value)) return;
@@ -74,6 +97,20 @@ export default function ResetPasswordPage() {
       });
     } catch (submitError) {
       setError(submitError.message || 'Could not reset password.');
+    }
+  };
+
+  const handleResendCode = async () => {
+    if (!canResend) return;
+
+    setError('');
+    try {
+      await forgotPassword(email);
+      setCode(['', '', '', '', '', '']);
+      inputRefs.current[0]?.focus();
+      setResendCooldown(120);
+    } catch (submitError) {
+      setError(submitError.message || 'Failed to resend code. Please try again.');
     }
   };
 
@@ -183,11 +220,33 @@ export default function ResetPasswordPage() {
             </button>
           </form>
 
-          <div className="mt-6 text-center text-sm text-on-surface-variant">
-            Need a new code?{' '}
-            <Link to="/forgot-password" className="text-primary font-bold hover:underline">
-              Request again
-            </Link>
+          <div className="mt-6 pt-6 border-t border-surface-container-high/50 flex flex-col items-center gap-3">
+            <p className="text-sm text-on-surface-variant text-center">
+              Didn't receive the code? Check your spam folder or
+            </p>
+            {resendCooldown > 0 ? (
+              <p className="text-xs text-on-surface-variant text-center">You can resend code in {cooldownLabel}.</p>
+            ) : null}
+            <button
+              type="button"
+              onClick={handleResendCode}
+              disabled={!canResend}
+              className={`text-primary font-semibold transition-colors inline-flex items-center gap-1 disabled:opacity-40 disabled:cursor-not-allowed ${
+                canResend ? 'hover:text-tertiary-fixed' : ''
+              }`}
+            >
+              <span className="material-symbols-outlined text-[1rem]">refresh</span>
+              Resend Code
+            </button>
+            {!email ? (
+              <p className="text-xs text-on-surface-variant text-center">
+                Missing email context.{' '}
+                <Link to="/forgot-password" className="text-primary font-bold hover:underline">
+                  Go to forgot password
+                </Link>
+                .
+              </p>
+            ) : null}
           </div>
         </div>
       </main>
