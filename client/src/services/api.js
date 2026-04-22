@@ -7,6 +7,10 @@ export const tokenStore = {
     return localStorage.getItem(TOKEN_STORAGE_KEY);
   },
   set(token) {
+    if (typeof token !== 'string' || token.trim() === '') {
+      this.clear();
+      return;
+    }
     localStorage.setItem(TOKEN_STORAGE_KEY, token);
   },
   clear() {
