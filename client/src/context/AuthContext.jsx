@@ -72,8 +72,9 @@ export function AuthProvider({ children }) {
     setAuthLoading(true);
     try {
       const data = await signupApi(payload);
-      tokenStore.set(data.accessToken);
-      setUser(data.user);
+      // Signup should not create an authenticated session until email is verified.
+      tokenStore.clear();
+      setUser(null);
       return data;
     } catch (error) {
       throw new Error(getApiErrorMessage(error, 'Signup failed'));
