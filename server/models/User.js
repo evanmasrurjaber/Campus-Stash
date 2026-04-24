@@ -28,6 +28,14 @@ const userSchema = new mongoose.Schema(
       required: [true, 'Phone number is required'],
       trim: true,
     },
+    avatar: {
+      url: {
+        type: String,
+      },
+      public_id: {
+        type: String,
+      },
+    },
     password: {
       type: String,
       required: [true, 'Password is required'],

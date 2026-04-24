@@ -1,6 +1,55 @@
 import { useEffect, useRef, useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 
+const getInitials = (fullName) => {
+  const normalizedName = String(fullName || '').trim();
+
+  if (!normalizedName) {
+    return 'U';
+  }
+
+  const initials = normalizedName
+    .split(/\s+/)
+    .filter(Boolean)
+    .slice(0, 2)
+    .map((part) => part.charAt(0).toUpperCase())
+    .join('');
+
+  return initials || 'U';
+};
+
+const getFirstName = (fullName) => {
+  const normalizedName = String(fullName || '').trim();
+
+  if (!normalizedName) {
+    return 'Student';
+  }
+
+  return normalizedName.split(/\s+/)[0] || 'Student';
+};
+
+function AvatarPill({ user }) {
+  const [failedImageUrl, setFailedImageUrl] = useState('');
+  const avatarUrl = user?.avatar?.url || '';
+
+  if (avatarUrl && failedImageUrl !== avatarUrl) {
+    return (
+      <img
+        src={avatarUrl}
+        alt="Profile avatar"
+        className="h-8 w-8 rounded-full object-cover"
+        onError={() => setFailedImageUrl(avatarUrl)}
+      />
+    );
+  }
+
+  return (
+    <span className="inline-flex h-8 w-8 items-center justify-center rounded-full bg-primary text-xs font-bold text-on-primary">
+      {getInitials(user?.fullName)}
+    </span>
+  );
+}
+
 export default function MainNavbar({ user, onLogout }) {
   const [isProfileMenuOpen, setIsProfileMenuOpen] = useState(false);
   const menuRef = useRef(null);
@@ -79,10 +128,8 @@ export default function MainNavbar({ user, onLogout }) {
               aria-haspopup="menu"
               aria-expanded={isProfileMenuOpen}
             >
-              <span className="inline-flex h-8 w-8 items-center justify-center rounded-full bg-primary text-xs font-bold text-on-primary">
-                {user?.fullName?.charAt(0)?.toUpperCase() || 'U'}
-              </span>
-              <span className="hidden max-w-28 truncate md:inline">{user?.fullName || 'Student'}</span>
+              <AvatarPill user={user} />
+              <span className="hidden max-w-28 truncate md:inline">{getFirstName(user?.fullName)}</span>
               <span className="material-symbols-outlined text-base">expand_more</span>
             </button>
 

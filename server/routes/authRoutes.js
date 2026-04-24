@@ -1,13 +1,16 @@
 const express = require('express');
 const {
+  buildUserResponse,
   forgotPassword,
   login,
   resendVerification,
   resetPassword,
   signup,
+  updateMe,
   verifyEmail,
 } = require('../controllers/authController');
 const { protect } = require('../middleware/authMiddleware');
+const { uploadAvatarImage } = require('../middleware/upload');
 
 const router = express.Router();
 
@@ -21,15 +24,10 @@ router.post('/resend-verification', resendVerification);
 router.get('/me', protect, (req, res) => {
   res.status(200).json({
     success: true,
-    user: {
-      id: req.user._id,
-      fullName: req.user.fullName,
-      email: req.user.email,
-      studentId: req.user.studentId,
-      phoneNumber: req.user.phoneNumber,
-      isVerified: req.user.isVerified,
-    },
+    user: buildUserResponse(req.user),
   });
 });
+
+router.patch('/me', protect, uploadAvatarImage, updateMe);
 
 module.exports = router;
