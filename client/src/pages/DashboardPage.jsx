@@ -1,6 +1,8 @@
 // src/pages/DashboardPage.jsx
 import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
+import MainFooter from '../components/layout/MainFooter';
+import MainNavbar from '../components/layout/MainNavbar';
 import { getApiErrorMessage, getMe } from '../services/api';
 import { useAuth } from '../hooks/useAuth';
 
@@ -36,7 +38,14 @@ export default function DashboardPage() {
   };
 
   useEffect(() => {
+    const previousBodyClass = document.body.className;
+    document.body.className = 'bg-surface font-body text-on-surface min-h-screen';
+
     fetchProfile();
+
+    return () => {
+      document.body.className = previousBodyClass;
+    };
   }, []);
 
   const onLogout = () => {
@@ -46,18 +55,10 @@ export default function DashboardPage() {
 
   return (
     <div className="min-h-screen bg-surface font-body text-on-surface page-enter">
-      <nav className="sticky top-0 glass-header px-6 py-4 flex items-center justify-between z-50">
-        <h1 className="text-xl font-headline font-extrabold tracking-tight text-primary">CampusStash</h1>
-        <button
-          onClick={onLogout}
-          className="px-4 py-2 rounded-lg bg-primary text-on-primary text-sm font-semibold"
-        >
-          Log Out
-        </button>
-      </nav>
+      <MainNavbar user={profile} onLogout={onLogout} />
 
-      <main className="px-4 py-10">
-        <section className="max-w-4xl mx-auto bg-surface-container-lowest rounded-xl p-8">
+      <main className="mx-auto w-full max-w-7xl px-4 py-10 md:px-6">
+        <section className="mx-auto max-w-5xl rounded-2xl border border-outline-variant/40 bg-surface-container-lowest p-6 md:p-8">
           <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4 mb-8">
             <div>
               <p className="text-xs uppercase tracking-[0.2em] text-primary/60 font-bold">Authenticated Session</p>
@@ -86,13 +87,12 @@ export default function DashboardPage() {
             <DataRow label="Student ID" value={profile?.studentId ? String(profile.studentId) : ''} />
             <DataRow label="Phone Number" value={profile?.phoneNumber} />
             <DataRow label="Verified" value={profile?.isVerified ? 'Yes' : 'No'} />
-            <DataRow
-              label="User ID"
-              value={profile?.id}
-            />
+            <DataRow label="User ID" value={profile?.id} />
           </div>
         </section>
       </main>
+
+      <MainFooter />
     </div>
   );
 }
