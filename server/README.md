@@ -11,6 +11,12 @@
 ## API
 
 - `GET /` basic status string.
+<<<<<<< Updated upstream
+=======
+- `POST /api/items/lost` protected multipart endpoint to report a lost item.
+- `GET /api/auth/me` protected profile read endpoint.
+- `PATCH /api/auth/me` protected multipart endpoint to update `fullName`, `phoneNumber`, `studentId`, and optional `avatar` image field.
+>>>>>>> Stashed changes
 
 ## Scripts
 

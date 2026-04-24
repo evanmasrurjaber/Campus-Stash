@@ -3,6 +3,7 @@ const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
 const User = require('../models/User');
 const { sendPasswordResetEmail, sendVerificationEmail } = require('../services/emailService');
+const { cloudinary, hasCloudinaryConfig } = require('../middleware/upload');
 
 const buildUserResponse = (user) => ({
   id: user._id,
@@ -10,6 +11,10 @@ const buildUserResponse = (user) => ({
   email: user.email,
   studentId: user.studentId,
   phoneNumber: user.phoneNumber,
+  avatar: {
+    url: user.avatar?.url || null,
+    public_id: user.avatar?.public_id || null,
+  },
   isVerified: user.isVerified,
   createdAt: user.createdAt,
   updatedAt: user.updatedAt,
@@ -421,11 +426,192 @@ const resendVerification = async (req, res) => {
   }
 };
 
+const hasOwn = (objectValue, key) => Object.prototype.hasOwnProperty.call(objectValue, key);
+const isRemoveAvatarRequested = (removeAvatarValue) => {
+  if (typeof removeAvatarValue === 'boolean') return removeAvatarValue;
+  if (typeof removeAvatarValue !== 'string') return false;
+  return removeAvatarValue.trim().toLowerCase() === 'true';
+};
+
+const deleteCloudinaryImage = async (publicId) => {
+  if (!publicId || !hasCloudinaryConfig) {
+    return;
+  }
+
+  try {
+    await cloudinary.uploader.destroy(publicId);
+  } catch (error) {
+    console.error('Cloudinary delete error:', error.message);
+  }
+};
+
+const updateMe = async (req, res) => {
+  try {
+    if (hasOwn(req.body, 'password') || hasOwn(req.body, 'newPassword') || hasOwn(req.body, 'currentPassword')) {
+      return res.status(400).json({
+        success: false,
+        message: 'Password updates are not supported here. Use /api/auth/reset-password.',
+      });
+    }
+
+    const updates = {};
+    const existingAvatarPublicId = req.user.avatar?.public_id;
+    const shouldRemoveAvatar = isRemoveAvatarRequested(req.body.removeAvatar);
+
+    if (shouldRemoveAvatar && req.file) {
+      return res.status(400).json({
+        success: false,
+        message: 'Choose either avatar upload or avatar removal, not both',
+      });
+    }
+
+    if (hasOwn(req.body, 'fullName')) {
+      const fullName = String(req.body.fullName || '').trim();
+
+      if (!fullName) {
+        return res.status(400).json({
+          success: false,
+          message: 'Full name cannot be empty',
+        });
+      }
+
+      if (fullName.length < 2 || fullName.length > 100) {
+        return res.status(400).json({
+          success: false,
+          message: 'Full name must be between 2 and 100 characters',
+        });
+      }
+
+      updates.fullName = fullName;
+    }
+
+    if (hasOwn(req.body, 'phoneNumber')) {
+      const phoneNumber = String(req.body.phoneNumber || '').trim();
+
+      if (!phoneNumber) {
+        return res.status(400).json({
+          success: false,
+          message: 'Phone number cannot be empty',
+        });
+      }
+
+      updates.phoneNumber = phoneNumber;
+    }
+
+    if (hasOwn(req.body, 'studentId')) {
+      const studentIdRaw = String(req.body.studentId || '').trim();
+      const studentId = Number(studentIdRaw);
+
+      if (!Number.isFinite(studentId)) {
+        return res.status(400).json({
+          success: false,
+          message: 'Student ID must be a valid number',
+        });
+      }
+
+      if (String(studentId).length !== 8) {
+        return res.status(400).json({
+          success: false,
+          message: 'Enter a valid 8-digit student ID',
+        });
+      }
+
+      if (studentId !== req.user.studentId) {
+        const studentIdExists = await User.exists({
+          studentId,
+          _id: { $ne: req.user._id },
+        });
+
+        if (studentIdExists) {
+          return res.status(409).json({
+            success: false,
+            message: 'Student ID already registered',
+          });
+        }
+      }
+
+      updates.studentId = studentId;
+    }
+
+    if (req.file) {
+      const avatarUrl = req.file.path || req.file.secure_url || req.file.url;
+      const avatarPublicId = req.file.filename || req.file.public_id;
+
+      if (!avatarUrl || !avatarPublicId) {
+        return res.status(400).json({
+          success: false,
+          message: 'Avatar upload failed',
+        });
+      }
+
+      updates.avatar = {
+        url: avatarUrl,
+        public_id: avatarPublicId,
+      };
+
+      if (existingAvatarPublicId && existingAvatarPublicId !== avatarPublicId) {
+        await deleteCloudinaryImage(existingAvatarPublicId);
+      }
+    }
+
+    if (shouldRemoveAvatar) {
+      updates.avatar = {
+        url: null,
+        public_id: null,
+      };
+
+      if (existingAvatarPublicId) {
+        await deleteCloudinaryImage(existingAvatarPublicId);
+      }
+    }
+
+    if (Object.keys(updates).length === 0) {
+      return res.status(400).json({
+        success: false,
+        message: 'Provide at least one updatable field or an avatar image',
+      });
+    }
+
+    req.user.set(updates);
+    await req.user.save();
+
+    return res.status(200).json({
+      success: true,
+      message: 'Profile updated successfully',
+      user: buildUserResponse(req.user),
+    });
+  } catch (error) {
+    console.error('Update profile error:', error.message);
+
+    if (error.name === 'ValidationError') {
+      const firstError = Object.values(error.errors)[0]?.message || 'Invalid profile update data';
+      return res.status(400).json({
+        success: false,
+        message: firstError,
+      });
+    }
+
+    if (error.code === 11000) {
+      return res.status(409).json({
+        success: false,
+        message: 'Student ID already registered',
+      });
+    }
+
+    return res.status(500).json({
+      success: false,
+      message: 'Server error while updating profile',
+    });
+  }
+};
+
 module.exports = {
+  buildUserResponse,
   login,
   signup,
   verifyEmail,
   forgotPassword,
   resetPassword,
   resendVerification,
+  updateMe,
 };

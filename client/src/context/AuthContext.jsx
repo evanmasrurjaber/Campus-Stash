@@ -1,4 +1,4 @@
-import { createContext, useEffect, useMemo, useState } from 'react';
+import { createContext, useCallback, useEffect, useMemo, useState } from 'react';
 import {
   forgotPassword as forgotPasswordApi,
   getApiErrorMessage,
@@ -18,6 +18,17 @@ export function AuthProvider({ children }) {
   const [isBootstrapping, setIsBootstrapping] = useState(true);
   const [authLoading, setAuthLoading] = useState(false);
 
+  const fetchCurrentUser = useCallback(async () => {
+    const data = await getMe();
+    return data.user;
+  }, []);
+
+  const refreshCurrentUser = useCallback(async () => {
+    const currentUser = await fetchCurrentUser();
+    setUser(currentUser);
+    return currentUser;
+  }, [fetchCurrentUser]);
+
   useEffect(() => {
     let active = true;
 
@@ -30,8 +41,10 @@ export function AuthProvider({ children }) {
       }
 
       try {
-        const data = await getMe();
-        if (active) setUser(data.user);
+        const currentUser = await fetchCurrentUser();
+        if (active) {
+          setUser(currentUser);
+        }
       } catch {
         tokenStore.clear();
         if (active) setUser(null);
@@ -45,7 +58,7 @@ export function AuthProvider({ children }) {
     return () => {
       active = false;
     };
-  }, []);
+  }, [fetchCurrentUser]);
 
   const login = async (credentials) => {
     setAuthLoading(true);
@@ -151,8 +164,9 @@ export function AuthProvider({ children }) {
       resendCode,
       forgotPassword,
       resetPassword,
+      refreshCurrentUser,
     }),
-    [user, isBootstrapping, authLoading],
+    [user, isBootstrapping, authLoading, refreshCurrentUser],
   );
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
