@@ -9,6 +9,7 @@ import ForgotPasswordPage from './pages/ForgotPasswordPage';
 import ResetPasswordPage from './pages/ResetPasswordPage';
 import DashboardPage from './pages/DashboardPage';
 import ReportLostItem from './pages/ReportLostItem';
+import ProfilePage from './pages/ProfilePage';
 
 function App() {
   return (
@@ -24,6 +25,7 @@ function App() {
 
         <Route element={<ProtectedRoute />}>
           <Route path="/dashboard" element={<DashboardPage />} />
+          <Route path="/profile" element={<ProfilePage />} />
           <Route path="/report-lost-item" element={<ReportLostItem />} />
         </Route>
 
