@@ -8,6 +8,7 @@ import VerifyEmailPage from './pages/VerifyEmailPage';
 import ForgotPasswordPage from './pages/ForgotPasswordPage';
 import ResetPasswordPage from './pages/ResetPasswordPage';
 import DashboardPage from './pages/DashboardPage';
+import ReportLostItem from './pages/ReportLostItem';
 
 function App() {
   return (
@@ -23,6 +24,7 @@ function App() {
 
         <Route element={<ProtectedRoute />}>
           <Route path="/dashboard" element={<DashboardPage />} />
+          <Route path="/report-lost-item" element={<ReportLostItem />} />
         </Route>
 
         <Route path="/" element={<Navigate to="/login" replace />} />

@@ -51,5 +51,13 @@ export const forgotPassword = (email) => unwrap(api.post('/auth/forgot-password'
 export const resetPassword = (token, newPassword) =>
   unwrap(api.post('/auth/reset-password', { token, newPassword }));
 export const getMe = () => unwrap(api.get('/auth/me'));
+export const reportLostItem = (formData) =>
+  unwrap(
+    api.post('/items/lost', formData, {
+      headers: {
+        'Content-Type': 'multipart/form-data',
+      },
+    }),
+  );
 
 export default api;
