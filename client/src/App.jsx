@@ -11,6 +11,8 @@ import DashboardPage from './pages/DashboardPage';
 import CreateEntryPage from './pages/CreateEntryPage';
 import ProfilePage from './pages/ProfilePage';
 import InboxPage from './pages/InboxPage';
+import MarketplacePage from './pages/MarketplacePage';
+import ItemDetailPage from './pages/ItemDetailPage';
 
 function App() {
   return (
@@ -29,6 +31,7 @@ function App() {
           <Route path="/profile" element={<ProfilePage />} />
           <Route path="/create-entry" element={<CreateEntryPage />} />
           <Route path="/inbox" element={<InboxPage />} />
+          <Route path="/items/:itemId" element={<ItemDetailPage />} />
         </Route>
 
         <Route path="/" element={<Navigate to="/login" replace />} />

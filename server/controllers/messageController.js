@@ -1,12 +1,17 @@
+const mongoose = require('mongoose');
 const Message = require('../models/Message');
 const Notification = require('../models/Notification');
 const User = require('../models/User');
 
 const PAGE_LIMIT = 50;
+const VALID_POST_TYPES = ['listing', 'lostItem', 'foundItem', 'saleItem'];
 
 const sendMessage = async (req, res) => {
   try {
-    const { recipientId, postId, postType, content } = req.body;
+    const recipientId = String(req.body.recipientId || '').trim();
+    const postId = String(req.body.postId || '').trim();
+    const postType = String(req.body.postType || '').trim();
+    const content = req.body.content;
     const senderId = req.user._id;
 
     if (!recipientId || !postId || !postType || !content) {
@@ -16,10 +21,24 @@ const sendMessage = async (req, res) => {
       });
     }
 
-    if (!['listing', 'lostItem'].includes(postType)) {
+    if (!mongoose.Types.ObjectId.isValid(recipientId)) {
       return res.status(400).json({
         success: false,
-        message: 'postType must be either listing or lostItem',
+        message: 'recipientId must be a valid id',
+      });
+    }
+
+    if (!mongoose.Types.ObjectId.isValid(postId)) {
+      return res.status(400).json({
+        success: false,
+        message: 'postId must be a valid id',
+      });
+    }
+
+    if (!VALID_POST_TYPES.includes(postType)) {
+      return res.status(400).json({
+        success: false,
+        message: 'postType must be listing, lostItem, foundItem, or saleItem',
       });
     }
 
@@ -180,10 +199,10 @@ const getMessagesOnPost = async (req, res) => {
     const { postId, postType } = req.params;
     const { page = 1 } = req.query;
 
-    if (!['listing', 'lostItem'].includes(postType)) {
+    if (!VALID_POST_TYPES.includes(postType)) {
       return res.status(400).json({
         success: false,
-        message: 'postType must be either listing or lostItem',
+        message: 'postType must be listing, lostItem, foundItem, or saleItem',
       });
     }
 
@@ -227,10 +246,10 @@ const getThreadWithUser = async (req, res) => {
     const currentUserId = req.user._id;
     const { page = 1 } = req.query;
 
-    if (!['listing', 'lostItem'].includes(postType)) {
+    if (!VALID_POST_TYPES.includes(postType)) {
       return res.status(400).json({
         success: false,
-        message: 'postType must be either listing or lostItem',
+        message: 'postType must be listing, lostItem, foundItem, or saleItem',
       });
     }
 

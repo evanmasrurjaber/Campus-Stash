@@ -62,8 +62,8 @@ const notificationSchema = new mongoose.Schema(
       type: String,
       default: null,
       enum: {
-        values: ['listing', 'lostItem', null],
-        message: 'Post type must be listing, lostItem, or null',
+        values: ['listing', 'lostItem', 'foundItem', 'saleItem', null],
+        message: 'Post type must be listing, lostItem, foundItem, saleItem, or null',
       },
       index: true,
     },

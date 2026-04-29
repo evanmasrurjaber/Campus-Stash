@@ -1,3 +1,4 @@
+const mongoose = require('mongoose');
 const Item = require('../models/Item');
 
 const normalizeTags = (rawTags) => {
@@ -193,6 +194,133 @@ const createItem = async (req, res) => {
   }
 };
 
+const getItems = async (req, res) => {
+  try {
+    const {
+      itemType,
+      state,
+      q,
+      category,
+      itemCondition,
+      minPrice,
+      maxPrice,
+      sort = 'recent',
+      page = '1',
+      limit = '12',
+    } = req.query;
+
+    const query = {};
+    const activeType = (itemType || state || '').trim().toLowerCase();
+
+    if (activeType && ['lost', 'found', 'sale'].includes(activeType)) {
+      query.itemType = activeType;
+    }
+
+    if (category) {
+      query.category = { $regex: String(category).trim(), $options: 'i' };
+    }
+
+    if (q && String(q).trim()) {
+      query.$text = { $search: String(q).trim() };
+    }
+
+    if (itemCondition && query.itemType === 'sale') {
+      query.itemCondition = String(itemCondition).trim();
+    }
+
+    const min = Number(minPrice);
+    const max = Number(maxPrice);
+
+    if (!Number.isNaN(min) || !Number.isNaN(max)) {
+      query.price = {};
+
+      if (!Number.isNaN(min)) {
+        query.price.$gte = min;
+      }
+
+      if (!Number.isNaN(max)) {
+        query.price.$lte = max;
+      }
+    }
+
+    const pageNumber = Math.max(parseInt(page, 10) || 1, 1);
+    const pageSize = Math.min(Math.max(parseInt(limit, 10) || 12, 1), 48);
+    const skip = (pageNumber - 1) * pageSize;
+
+    const sortOptions =
+      sort === 'price_asc'
+        ? { price: 1, createdAt: -1 }
+        : sort === 'price_desc'
+          ? { price: -1, createdAt: -1 }
+          : sort === 'oldest'
+            ? { createdAt: 1 }
+            : { createdAt: -1 };
+
+    const [items, totalItems] = await Promise.all([
+      Item.find(query).populate('reportedBy', 'fullName email studentId avatar').sort(sortOptions).skip(skip).limit(pageSize),
+      Item.countDocuments(query),
+    ]);
+
+    return res.status(200).json({
+      success: true,
+      data: {
+        items,
+        pagination: {
+          page: pageNumber,
+          limit: pageSize,
+          totalItems,
+          totalPages: Math.max(Math.ceil(totalItems / pageSize), 1),
+        },
+      },
+    });
+  } catch (error) {
+    console.error('Get items error:', error);
+
+    return res.status(500).json({
+      success: false,
+      message: 'Server error while loading items',
+    });
+  }
+};
+
+const getItemById = async (req, res) => {
+  try {
+    const { id } = req.params;
+
+    if (!mongoose.Types.ObjectId.isValid(id)) {
+      return res.status(400).json({
+        success: false,
+        message: 'Invalid item id',
+      });
+    }
+
+    const item = await Item.findById(id).populate('reportedBy', 'fullName email studentId avatar');
+
+    if (!item) {
+      return res.status(404).json({
+        success: false,
+        message: 'Item not found',
+      });
+    }
+
+    return res.status(200).json({
+      success: true,
+      data: {
+        item,
+      },
+    });
+  } catch (error) {
+    console.error('Get item by id error:', error);
+
+    return res.status(500).json({
+      success: false,
+      message: 'Server error while loading item',
+    });
+  }
+};
+
 module.exports = {
   createItem,
+  getItems,
+  getItemById,
 };

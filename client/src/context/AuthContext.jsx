@@ -1,4 +1,4 @@
-import { createContext, useEffect, useMemo, useState } from 'react';
+import { useCallback, useEffect, useMemo, useState } from 'react';
 import {
   forgotPassword as forgotPasswordApi,
   getApiErrorMessage,
@@ -10,8 +10,7 @@ import {
   resendCode as resendCodeApi,
   tokenStore,
 } from '../services/api';
-
-export const AuthContext = createContext(null);
+import { AuthContext } from './AuthContextBase';
 
 export function AuthProvider({ children }) {
   const [user, setUser] = useState(null);

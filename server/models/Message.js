@@ -22,8 +22,8 @@ const messageSchema = new mongoose.Schema(
       type: String,
       required: [true, 'Post type is required'],
       enum: {
-        values: ['listing', 'lostItem'],
-        message: 'Post type must be either listing or lostItem',
+        values: ['listing', 'lostItem', 'foundItem', 'saleItem'],
+        message: 'Post type must be listing, lostItem, foundItem, or saleItem',
       },
       index: true,
     },
