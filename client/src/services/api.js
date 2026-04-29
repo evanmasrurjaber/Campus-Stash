@@ -75,5 +75,13 @@ export const createItem = (formData) =>
       },
     }),
   );
+export const reportLostItem = (formData) =>
+  unwrap(
+    api.post('/items/lost', formData, {
+      headers: {
+        'Content-Type': 'multipart/form-data',
+      },
+    }),
+  );
 
 export default api;
