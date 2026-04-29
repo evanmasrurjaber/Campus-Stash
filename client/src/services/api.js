@@ -75,22 +75,6 @@ export const createItem = (formData) =>
       },
     }),
   );
-export const updateProfile = (formData) =>
-  unwrap(
-    api.patch('/auth/me', formData, {
-      headers: {
-        'Content-Type': 'multipart/form-data',
-      },
-    }),
-  );
-export const sendMessage = (payload) => unwrap(api.post('/messages', payload));
-export const getInbox = (page = 1) => unwrap(api.get('/messages/inbox', { params: { page } }));
-export const getThreadWithUser = (otherUserId, postId, postType, page = 1) =>
-  unwrap(
-    api.get(`/messages/thread/${otherUserId}/${postId}/${postType}`, {
-      params: { page },
-    }),
-  );
 export const reportLostItem = (formData) =>
   unwrap(
     api.post('/items/lost', formData, {
