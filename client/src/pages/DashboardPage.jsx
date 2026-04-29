@@ -70,13 +70,21 @@ export default function DashboardPage() {
               </p>
             </div>
 
-            <button
-              onClick={fetchProfile}
-              disabled={loadingProfile}
-              className="px-4 py-3 rounded-lg border border-outline-variant text-sm font-semibold hover:bg-surface-container-low disabled:opacity-60"
-            >
-              {loadingProfile ? 'Refreshing...' : 'Refresh Profile'}
-            </button>
+            <div className="flex items-center gap-3">
+              <button
+                onClick={() => navigate('/report-lost-item')}
+                className="px-4 py-3 rounded-lg bg-primary text-on-primary text-sm font-semibold"
+              >
+                Report Lost Item
+              </button>
+              <button
+                onClick={fetchProfile}
+                disabled={loadingProfile}
+                className="px-4 py-3 rounded-lg border border-outline-variant text-sm font-semibold hover:bg-surface-container-low disabled:opacity-60"
+              >
+                {loadingProfile ? 'Refreshing...' : 'Refresh Profile'}
+              </button>
+            </div>
           </div>
 
           {error ? <p className="text-sm font-semibold text-error mb-6">{error}</p> : null}
