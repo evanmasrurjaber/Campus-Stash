@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from 'react';
-import { Link, useNavigate } from 'react-router-dom';
+import { Link, useLocation, useNavigate } from 'react-router-dom';
 
 const getInitials = (fullName) => {
   const normalizedName = String(fullName || '').trim();
@@ -54,6 +54,7 @@ export default function MainNavbar({ user, onLogout }) {
   const [isProfileMenuOpen, setIsProfileMenuOpen] = useState(false);
   const menuRef = useRef(null);
   const navigate = useNavigate();
+  const location = useLocation();
 
   useEffect(() => {
     const handleOutsideClick = (event) => {
@@ -106,8 +107,13 @@ export default function MainNavbar({ user, onLogout }) {
 
           <button
             type="button"
-            className="inline-flex h-10 w-10 items-center justify-center rounded-full text-on-surface-variant transition-colors hover:bg-surface-container-high hover:text-primary"
+            className={`inline-flex h-10 w-10 items-center justify-center rounded-full transition-colors ${
+              location.pathname === '/inbox'
+                ? 'bg-primary-container/10 text-primary'
+                : 'text-on-surface-variant hover:bg-surface-container-high hover:text-primary'
+            }`}
             aria-label="Inbox"
+            onClick={() => navigate('/inbox')}
           >
             <span className="material-symbols-outlined">mail</span>
           </button>

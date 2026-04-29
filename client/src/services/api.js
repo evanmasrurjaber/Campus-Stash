@@ -59,6 +59,14 @@ export const updateProfile = (formData) =>
       },
     }),
   );
+export const sendMessage = (payload) => unwrap(api.post('/messages', payload));
+export const getInbox = (page = 1) => unwrap(api.get('/messages/inbox', { params: { page } }));
+export const getThreadWithUser = (otherUserId, postId, postType, page = 1) =>
+  unwrap(
+    api.get(`/messages/thread/${otherUserId}/${postId}/${postType}`, {
+      params: { page },
+    }),
+  );
 export const reportLostItem = (formData) =>
   unwrap(
     api.post('/items/lost', formData, {
