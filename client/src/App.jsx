@@ -11,6 +11,7 @@ import DashboardPage from './pages/DashboardPage';
 import CreateEntryPage from './pages/CreateEntryPage';
 import ProfilePage from './pages/ProfilePage';
 import InboxPage from './pages/InboxPage';
+import MarketplacePage from './pages/MarketplacePage';
 
 function App() {
   return (
@@ -26,6 +27,7 @@ function App() {
 
         <Route element={<ProtectedRoute />}>
           <Route path="/dashboard" element={<DashboardPage />} />
+          <Route path="/marketplace" element={<MarketplacePage />} />
           <Route path="/profile" element={<ProfilePage />} />
           <Route path="/create-entry" element={<CreateEntryPage />} />
           <Route path="/inbox" element={<InboxPage />} />

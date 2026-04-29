@@ -71,7 +71,7 @@ export default function CreateEntryPage() {
   useEffect(() => {
     let initialMode = location.state?.mode || new URLSearchParams(location.search).get('mode') || '';
 
-    if (initialMode && ['lost', 'found', 'sale'].includes(initialMode)) {
+    if (initialMode && ['sale', 'lost', 'found'].includes(initialMode)) {
       setForm((prev) => ({ ...prev, itemType: initialMode }));
     }
   }, [location]);
@@ -359,7 +359,7 @@ export default function CreateEntryPage() {
                 <div className="space-y-4">
                   <h3 className="text-lg font-headline font-bold text-on-surface">Step 1: Choose Listing Type</h3>
                   <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-                    {['lost', 'found', 'sale'].map((mode) => (
+                    {['sale', 'lost', 'found'].map((mode) => (
                       <label key={mode} className="relative group cursor-pointer">
                         <input
                           type="radio"

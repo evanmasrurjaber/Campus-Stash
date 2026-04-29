@@ -120,6 +120,7 @@ const itemSchema = new mongoose.Schema(
 
 itemSchema.index({ itemType: 1, createdAt: -1 });
 itemSchema.index({ reportedBy: 1, createdAt: -1 });
+itemSchema.index({ title: 'text', description: 'text', category: 'text', tags: 'text' });
 
 // Pre-save validation for required fields based on itemType
 itemSchema.pre('save', function () {
