@@ -51,9 +51,25 @@ export const forgotPassword = (email) => unwrap(api.post('/auth/forgot-password'
 export const resetPassword = (token, newPassword) =>
   unwrap(api.post('/auth/reset-password', { token, newPassword }));
 export const getMe = () => unwrap(api.get('/auth/me'));
-export const reportLostItem = (formData) =>
+export const updateProfile = (formData) =>
   unwrap(
-    api.post('/items/lost', formData, {
+    api.patch('/auth/me', formData, {
+      headers: {
+        'Content-Type': 'multipart/form-data',
+      },
+    }),
+  );
+export const sendMessage = (payload) => unwrap(api.post('/messages', payload));
+export const getInbox = (page = 1) => unwrap(api.get('/messages/inbox', { params: { page } }));
+export const getThreadWithUser = (otherUserId, postId, postType, page = 1) =>
+  unwrap(
+    api.get(`/messages/thread/${otherUserId}/${postId}/${postType}`, {
+      params: { page },
+    }),
+  );
+export const createItem = (formData) =>
+  unwrap(
+    api.post('/items', formData, {
       headers: {
         'Content-Type': 'multipart/form-data',
       },

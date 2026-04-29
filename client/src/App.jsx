@@ -8,8 +8,9 @@ import VerifyEmailPage from './pages/VerifyEmailPage';
 import ForgotPasswordPage from './pages/ForgotPasswordPage';
 import ResetPasswordPage from './pages/ResetPasswordPage';
 import DashboardPage from './pages/DashboardPage';
-import ReportLostItem from './pages/ReportLostItem';
+import CreateEntryPage from './pages/CreateEntryPage';
 import ProfilePage from './pages/ProfilePage';
+import InboxPage from './pages/InboxPage';
 
 function App() {
   return (
@@ -26,7 +27,8 @@ function App() {
         <Route element={<ProtectedRoute />}>
           <Route path="/dashboard" element={<DashboardPage />} />
           <Route path="/profile" element={<ProfilePage />} />
-          <Route path="/report-lost-item" element={<ReportLostItem />} />
+          <Route path="/create-entry" element={<CreateEntryPage />} />
+          <Route path="/inbox" element={<InboxPage />} />
         </Route>
 
         <Route path="/" element={<Navigate to="/login" replace />} />
