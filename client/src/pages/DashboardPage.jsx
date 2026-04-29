@@ -70,12 +70,24 @@ export default function DashboardPage() {
               </p>
             </div>
 
-            <div className="flex items-center gap-3">
+            <div className="flex flex-wrap items-center gap-2 md:gap-3">
               <button
-                onClick={() => navigate('/report-lost-item')}
-                className="px-4 py-3 rounded-lg bg-primary text-on-primary text-sm font-semibold"
+                onClick={() => navigate('/create-entry', { state: { mode: 'lost' } })}
+                className="px-4 py-3 rounded-lg bg-primary text-on-primary text-sm font-semibold hover:opacity-90 transition-opacity"
               >
                 Report Lost Item
+              </button>
+              <button
+                onClick={() => navigate('/create-entry', { state: { mode: 'found' } })}
+                className="px-4 py-3 rounded-lg bg-secondary-container text-on-secondary text-sm font-semibold hover:opacity-90 transition-opacity"
+              >
+                Report Found Item
+              </button>
+              <button
+                onClick={() => navigate('/create-entry', { state: { mode: 'sale' } })}
+                className="px-4 py-3 rounded-lg bg-tertiary-fixed text-on-tertiary text-sm font-semibold hover:opacity-90 transition-opacity"
+              >
+                Post Listing
               </button>
               <button
                 onClick={fetchProfile}

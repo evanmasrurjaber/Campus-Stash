@@ -367,162 +367,23 @@ export default function ProfilePage() {
             <div className="absolute right-[-50px] top-[-50px] h-32 w-32 rounded-full bg-primary/10 blur-2xl"></div>
 
             <p className="text-[11px] font-bold uppercase tracking-[0.18em] text-primary/60">User Profile</p>
-            <div className="mt-4 flex flex-col gap-4 rounded-2xl border border-outline-variant/30 bg-surface-container-low p-4 sm:flex-row sm:items-center sm:justify-between">
-              <div className="flex items-center gap-4">
-                <div className="flex-shrink-0">
-                  <AvatarBadge profile={profile} previewUrl={avatarPreviewUrl} />
-                </div>
-                <div className="flex-1">
-                  <h1 className="font-headline text-3xl font-extrabold tracking-tight text-primary md:text-4xl">
-                    {profile?.fullName || 'CampusStash Student'}
-                  </h1>
-                  <p className="mt-2 max-w-xl text-sm leading-relaxed text-on-surface-variant">
-                    Manage your personal details and track your listing identity across marketplace and lost &amp; found activities.
-                  </p>
-                </div>
-              </div>
+            <h1 className="mt-2 font-headline text-3xl font-extrabold tracking-tight text-primary md:text-4xl">
+              {profile?.fullName || 'CampusStash Student'}
+            </h1>
+            <p className="mt-3 max-w-xl text-sm leading-relaxed text-on-surface-variant">
+              Manage your personal details and track your listing identity across marketplace and lost &amp; found activities.
+            </p>
 
-              {!isEditing ? (
-                <button
-                  type="button"
-                  onClick={handleEnterEditMode}
-                  className="rounded-lg bg-primary px-4 py-2 text-sm font-semibold text-on-primary transition-opacity hover:opacity-90"
-                >
-                  Edit Profile
-                </button>
-              ) : null}
+            <div className="mt-8 grid grid-cols-1 gap-4 sm:grid-cols-2">
+              <ProfileRow label="Full Name" value={profile?.fullName} />
+              <ProfileRow label="Email" value={profile?.email} />
+              <ProfileRow label="Student ID" value={profile?.studentId ? String(profile.studentId) : ''} />
+              <ProfileRow label="Phone Number" value={profile?.phoneNumber} />
+              <ProfileRow label="Verification" value={profile?.isVerified ? 'Verified' : 'Pending'} />
+              <ProfileRow label="User ID" value={profile?.id} />
             </div>
 
-            {saveSuccess ? (
-              <div className="mt-5 rounded-lg border border-primary/30 bg-primary/10 px-4 py-3 text-sm font-semibold text-primary">{saveSuccess}</div>
-            ) : null}
-
             {error ? <p className="mt-5 text-sm font-semibold text-error">{error}</p> : null}
-
-            {!isEditing ? (
-              <div className="mt-8 grid grid-cols-1 gap-4 sm:grid-cols-2">
-                <ProfileRow label="Full Name" value={profile?.fullName} />
-                <ProfileRow label="Email" value={profile?.email} />
-                <ProfileRow label="Student ID" value={profile?.studentId ? String(profile.studentId) : ''} />
-                <ProfileRow label="Phone Number" value={profile?.phoneNumber} />
-                <ProfileRow label="Verification" value={profile?.isVerified ? 'Verified' : 'Pending'} />
-                <ProfileRow label="User ID" value={profile?.id} />
-              </div>
-            ) : (
-              <form onSubmit={handleSaveProfile} className="mt-8 space-y-4">
-                <div className="rounded-xl border border-outline-variant/40 bg-surface-container-low p-4">
-                  <p className="text-[11px] font-bold uppercase tracking-[0.14em] text-primary/60">Avatar</p>
-                  <div className="mt-3 flex flex-wrap items-center gap-3">
-                    <button
-                      type="button"
-                      className="rounded-lg border border-outline-variant px-4 py-2 text-sm font-semibold text-on-surface transition-colors hover:bg-surface-container-high"
-                      onClick={handleAvatarSelectClick}
-                    >
-                      Replace Avatar
-                    </button>
-
-                    {AVATAR_REMOVE_ENABLED ? (
-                      <button
-                        type="button"
-                        className="rounded-lg border border-error/60 px-4 py-2 text-sm font-semibold text-error transition-colors hover:bg-error/10"
-                        onClick={handleAvatarRemove}
-                        disabled={!latestAvatarUrl && !avatarFile}
-                      >
-                        Remove Avatar
-                      </button>
-                    ) : null}
-
-                    <input
-                      ref={avatarInputRef}
-                      type="file"
-                      accept="image/*"
-                      onChange={handleAvatarFileChange}
-                      className="hidden"
-                    />
-                  </div>
-
-                  <p className="mt-3 text-xs text-on-surface-variant">
-                    {avatarFile
-                      ? `Selected file: ${avatarFile.name}`
-                      : removeAvatar
-                        ? 'Avatar will be removed when you save changes.'
-                        : 'JPG, PNG, WEBP, HEIC up to 2MB.'}
-                  </p>
-                </div>
-
-                <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
-                  <label className="rounded-xl bg-surface-container-low p-4">
-                    <span className="text-[11px] font-bold uppercase tracking-[0.14em] text-primary/60">Full Name</span>
-                    <input
-                      type="text"
-                      value={draft.fullName}
-                      onChange={handleFieldChange('fullName')}
-                      onBlur={handleFieldBlur('fullName')}
-                      className="mt-2 w-full rounded-lg border border-outline-variant bg-surface px-3 py-2 text-sm text-on-surface outline-none transition-colors focus:border-primary"
-                    />
-                    {fieldErrors.fullName ? <p className="mt-2 text-xs font-semibold text-error">{fieldErrors.fullName}</p> : null}
-                  </label>
-
-                  <label className="rounded-xl bg-surface-container-low p-4">
-                    <span className="text-[11px] font-bold uppercase tracking-[0.14em] text-primary/60">Email</span>
-                    <input
-                      type="email"
-                      value={profile?.email || ''}
-                      disabled
-                      className="mt-2 w-full cursor-not-allowed rounded-lg border border-outline-variant/50 bg-surface-container px-3 py-2 text-sm text-on-surface-variant"
-                    />
-                  </label>
-
-                  <label className="rounded-xl bg-surface-container-low p-4">
-                    <span className="text-[11px] font-bold uppercase tracking-[0.14em] text-primary/60">Phone Number</span>
-                    <input
-                      type="text"
-                      value={draft.phoneNumber}
-                      onChange={handleFieldChange('phoneNumber')}
-                      onBlur={handleFieldBlur('phoneNumber')}
-                      className="mt-2 w-full rounded-lg border border-outline-variant bg-surface px-3 py-2 text-sm text-on-surface outline-none transition-colors focus:border-primary"
-                    />
-                    {fieldErrors.phoneNumber ? <p className="mt-2 text-xs font-semibold text-error">{fieldErrors.phoneNumber}</p> : null}
-                  </label>
-
-                  <label className="rounded-xl bg-surface-container-low p-4">
-                    <span className="text-[11px] font-bold uppercase tracking-[0.14em] text-primary/60">Student ID</span>
-                    <input
-                      type="text"
-                      inputMode="numeric"
-                      value={draft.studentId}
-                      onChange={handleFieldChange('studentId')}
-                      onBlur={handleFieldBlur('studentId')}
-                      className="mt-2 w-full rounded-lg border border-outline-variant bg-surface px-3 py-2 text-sm text-on-surface outline-none transition-colors focus:border-primary"
-                    />
-                    {fieldErrors.studentId ? <p className="mt-2 text-xs font-semibold text-error">{fieldErrors.studentId}</p> : null}
-                  </label>
-                </div>
-
-                {saveError ? (
-                  <div className="rounded-lg border border-error/40 bg-error/10 px-4 py-3 text-sm font-semibold text-error">{saveError}</div>
-                ) : null}
-
-                <div className="flex flex-wrap gap-3">
-                  <button
-                    type="submit"
-                    className="rounded-lg bg-primary px-4 py-2 text-sm font-semibold text-on-primary transition-opacity hover:opacity-90 disabled:cursor-not-allowed disabled:opacity-60"
-                    disabled={isSaveDisabled}
-                  >
-                    {isSubmitting ? 'Saving profile...' : 'Save Changes'}
-                  </button>
-
-                  <button
-                    type="button"
-                    className="rounded-lg border border-outline-variant px-4 py-2 text-sm font-semibold text-on-surface transition-colors hover:bg-surface-container-high"
-                    onClick={handleCancelEdit}
-                    disabled={isSubmitting}
-                  >
-                    Cancel
-                  </button>
-                </div>
-              </form>
-            )}
           </article>
 
           <aside className="space-y-6">
