@@ -5,6 +5,10 @@ export default function MainNavbar({ user, onLogout }) {
   const [isProfileMenuOpen, setIsProfileMenuOpen] = useState(false);
   const menuRef = useRef(null);
   const navigate = useNavigate();
+  const location = useLocation();
+  const searchParams = new URLSearchParams(location.search);
+  const currentMarketplaceState = searchParams.get('state') || 'listings';
+  const isMarketplacePath = location.pathname.startsWith('/marketplace');
 
   useEffect(() => {
     const handleOutsideClick = (event) => {
@@ -38,12 +42,27 @@ export default function MainNavbar({ user, onLogout }) {
         </Link>
 
         <div className="hidden items-center gap-8 md:flex">
-          <a href="#" className="text-sm font-semibold tracking-wide text-on-surface-variant transition-colors hover:text-primary">
-            Market Place
-          </a>
-          <a href="#" className="text-sm font-semibold tracking-wide text-on-surface-variant transition-colors hover:text-primary">
-            Lost &amp; Found
-          </a>
+          {[
+            ['listings', 'For Sale'],
+            ['lost', 'Lost Items'],
+            ['found', 'Found Items'],
+          ].map(([value, label]) => {
+            const active = isMarketplacePath && currentMarketplaceState === value;
+            const to = `/marketplace?state=${value}`;
+
+            return (
+              <button
+                key={value}
+                type="button"
+                onClick={() => navigate(to)}
+                className={`text-sm font-semibold tracking-wide transition-colors ${
+                  active ? 'text-primary border-b-2 border-primary pb-1' : 'text-on-surface-variant hover:text-primary'
+                }`}
+              >
+                {label}
+              </button>
+            );
+          })}
         </div>
 
         <div className="flex items-center gap-1 md:gap-2">
@@ -134,12 +153,27 @@ export default function MainNavbar({ user, onLogout }) {
       </nav>
 
       <div className="mx-auto flex max-w-7xl items-center gap-6 px-4 pb-3 md:hidden md:px-6">
-        <a href="#" className="text-xs font-semibold uppercase tracking-widest text-on-surface-variant transition-colors hover:text-primary">
-          Market Place
-        </a>
-        <a href="#" className="text-xs font-semibold uppercase tracking-widest text-on-surface-variant transition-colors hover:text-primary">
-          Lost &amp; Found
-        </a>
+        {[
+          ['listings', 'FOR SALE'],
+          ['lost', 'LOST'],
+          ['found', 'FOUND'],
+        ].map(([value, label]) => {
+          const active = isMarketplacePath && currentMarketplaceState === value;
+          const to = value === 'listings' ? '/marketplace' : `/marketplace?state=${value}`;
+
+          return (
+            <button
+              key={value}
+              type="button"
+              onClick={() => navigate(to)}
+              className={`text-xs font-semibold uppercase tracking-widest transition-colors ${
+                active ? 'text-primary border-b-2 border-primary pb-1' : 'text-on-surface-variant hover:text-primary'
+              }`}
+            >
+              {label}
+            </button>
+          );
+        })}
       </div>
     </header>
   );

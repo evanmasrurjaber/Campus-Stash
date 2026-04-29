@@ -62,6 +62,21 @@ export default function MarketplacePage() {
     });
   };
 
+  const setMarketplaceState = (nextState) => {
+    const nextUrl = new URL(window.location.href);
+    nextUrl.pathname = '/marketplace';
+    nextUrl.searchParams.set('state', nextState);
+
+    const currentSearch = location.search;
+    const nextSearch = nextUrl.search;
+
+    setState(nextState);
+    setPagination((prev) => ({ ...prev, page: 1 }));
+
+    if (currentSearch !== nextSearch) {
+      navigate(`${nextUrl.pathname}${nextUrl.search}`, { replace: true });
+    }
+  };
 
   useEffect(() => {
     const nextState = searchParams.get('state');
@@ -111,6 +126,10 @@ export default function MarketplacePage() {
 
     loadItems();
   }, [state, search, filters.category, filters.itemCondition, filters.minPrice, filters.maxPrice, filters.sort, pagination.page]);
+
+  const onStateChange = (nextState) => {
+    setMarketplaceState(nextState);
+  };
 
   const onFilterChange = (key, value) => {
     setFilters((prev) => ({ ...prev, [key]: value }));
@@ -190,6 +209,7 @@ export default function MarketplacePage() {
           <MarketplaceFilters
             state={state}
             filters={filters}
+            onStateChange={onStateChange}
             onFilterChange={onFilterChange}
             onClear={onClear}
           />
