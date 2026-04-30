@@ -2,6 +2,7 @@ const mongoose = require('mongoose');
 const Message = require('../models/Message');
 const Notification = require('../models/Notification');
 const User = require('../models/User');
+const { getIO } = require('../utils/socket');
 
 const PAGE_LIMIT = 50;
 const VALID_POST_TYPES = ['listing', 'lostItem', 'foundItem', 'saleItem'];
@@ -80,6 +81,14 @@ const sendMessage = async (req, res) => {
       postId,
       postType,
     });
+
+    const io = getIO();
+    if (io) {
+      io.to(String(recipientId)).emit('message_received', {
+        message,
+        notification,
+      });
+    }
 
     return res.status(201).json({
       success: true,

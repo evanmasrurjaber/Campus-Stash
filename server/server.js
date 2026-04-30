@@ -3,10 +3,13 @@ const cors = require('cors');
 const dotenv = require('dotenv');
 
 dotenv.config();
+const http = require('http');
+const { Server } = require('socket.io');
 
 const connectDB = require('./config/db');
 const authRoutes = require('./routes/authRoutes');
 const messageRoutes = require('./routes/messageRoutes');
+const { setIO } = require('./utils/socket');
 const itemRoutes = require('./routes/itemRoutes');
 
 const app = express();
@@ -36,9 +39,28 @@ app.get('/', (req, res) => {
   res.send('CampusStash backend is running');
 });
 
+const httpServer = http.createServer(app);
+
+const io = new Server(httpServer, {
+  cors: {
+    origin: CLIENT_URL,
+    credentials: true,
+  },
+});
+
+io.on('connection', (socket) => {
+  socket.on('identify', (userId) => {
+    if (userId) {
+      socket.join(String(userId));
+    }
+  });
+});
+
+setIO(io);
+
 connectDB()
   .then(() => {
-    app.listen(PORT, () => {
+    httpServer.listen(PORT, () => {
       console.log(`Server running on port ${PORT}`);
     });
   })

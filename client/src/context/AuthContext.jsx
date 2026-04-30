@@ -10,6 +10,14 @@ import {
   resendCode as resendCodeApi,
   tokenStore,
 } from '../services/api';
+import {
+  connect as connectSocket,
+  disconnect as disconnectSocket,
+  getSocket,
+} from '../utils/socket';
+
+// eslint-disable-next-line react-refresh/only-export-components
+export const AuthContext = createContext(null);
 import { AuthContext } from './AuthContextBase';
 
 export function AuthProvider({ children }) {
@@ -96,9 +104,30 @@ export function AuthProvider({ children }) {
   };
 
   const logout = () => {
+    disconnectSocket();
     tokenStore.clear();
     setUser(null);
   };
+
+  useEffect(() => {
+    if (!user?.id) {
+      return;
+    }
+
+    connectSocket(user.id);
+    const socket = getSocket();
+
+    const handleMessageReceived = (payload) => {
+      window.dispatchEvent(new CustomEvent('inbox:update', { detail: payload }));
+    };
+
+    socket?.off('message_received', handleMessageReceived);
+    socket?.on('message_received', handleMessageReceived);
+
+    return () => {
+      socket?.off('message_received', handleMessageReceived);
+    };
+  }, [user]);
 
   const verifyEmail = async (code) => {
     setAuthLoading(true);
