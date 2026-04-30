@@ -217,6 +217,18 @@ export default function InboxPage() {
     };
   }, [fetchInboxData]);
 
+  useEffect(() => {
+    const handleInboxUpdate = () => {
+      fetchInboxData(selectedConversationKey);
+    };
+
+    window.addEventListener('inbox:update', handleInboxUpdate);
+
+    return () => {
+      window.removeEventListener('inbox:update', handleInboxUpdate);
+    };
+  }, [fetchInboxData, selectedConversationKey]);
+
   const handleLogout = () => {
     logout();
     navigate('/login', { replace: true });
