@@ -423,6 +423,16 @@ export default function ItemDetailPage() {
                     Save for later
                   </button>
                 ) : null}
+                {isOwner ? (
+                  <button
+                    type="button"
+                    onClick={() => navigate(`/items/${item._id}/edit`)}
+                    className="w-full rounded-xl border border-outline-variant/40 bg-surface-container-low px-5 py-3 text-sm font-bold text-primary hover:bg-surface-container-high transition-colors flex items-center justify-center gap-2"
+                  >
+                    <span className="material-symbols-outlined text-sm">edit</span>
+                    Edit Listing
+                  </button>
+                ) : null}
               </div>
             </div>
 

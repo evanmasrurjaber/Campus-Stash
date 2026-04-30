@@ -1,4 +1,5 @@
 const mongoose = require('mongoose');
+const cloudinary = require('cloudinary').v2;
 const Item = require('../models/Item');
 
 const normalizeTags = (rawTags) => {
@@ -319,8 +320,223 @@ const getItemById = async (req, res) => {
   }
 };
 
+const updateItem = async (req, res) => {
+  try {
+    const { id } = req.params;
+
+    if (!mongoose.Types.ObjectId.isValid(id)) {
+      return res.status(400).json({
+        success: false,
+        message: 'Invalid item id',
+      });
+    }
+
+    // Fetch existing item
+    const item = await Item.findById(id);
+    if (!item) {
+      return res.status(404).json({
+        success: false,
+        message: 'Item not found',
+      });
+    }
+
+    // Ownership check
+    if (item.reportedBy.toString() !== req.user._id.toString()) {
+      return res.status(403).json({
+        success: false,
+        message: 'You do not have permission to edit this item',
+      });
+    }
+
+    // Extract and validate fields
+    const itemType = (req.body.itemType || '').trim().toLowerCase();
+    const title = (req.body.title || '').trim();
+    const description = (req.body.description || '').trim();
+    const category = (req.body.category || '').trim();
+    const tags = normalizeTags(req.body.tags || []);
+    const newImages = mapUploadedImages(req.files || []);
+
+    // Validate itemType
+    if (itemType && !['lost', 'found', 'sale'].includes(itemType)) {
+      return res.status(400).json({
+        success: false,
+        message: 'itemType must be one of: lost, found, or sale',
+      });
+    }
+
+    // Validate required common fields
+    if (title && !title.trim()) {
+      return res.status(400).json({
+        success: false,
+        message: 'title cannot be empty',
+      });
+    }
+
+    if (description && !description.trim()) {
+      return res.status(400).json({
+        success: false,
+        message: 'description cannot be empty',
+      });
+    }
+
+    // Parse imagesToDelete (array of public_ids to remove)
+    let imagesToDelete = [];
+    if (req.body.imagesToDelete) {
+      try {
+        imagesToDelete = typeof req.body.imagesToDelete === 'string'
+          ? JSON.parse(req.body.imagesToDelete)
+          : Array.isArray(req.body.imagesToDelete)
+            ? req.body.imagesToDelete
+            : [];
+      } catch (e) {
+        imagesToDelete = [];
+      }
+    }
+
+    // Delete images from Cloudinary
+    if (imagesToDelete.length > 0) {
+      for (const public_id of imagesToDelete) {
+        try {
+          await cloudinary.uploader.destroy(public_id);
+        } catch (cloudErr) {
+          console.error('Cloudinary delete error:', cloudErr);
+        }
+      }
+    }
+
+    // Update basic fields
+    const updateData = {
+      ...(title && { title }),
+      ...(description && { description }),
+      ...(category && { category }),
+      ...(tags.length > 0 && { tags }),
+    };
+
+    // Handle image updates: keep existing (not deleted) + add new ones
+    const remainingImages = item.images.filter(
+      (img) => !imagesToDelete.includes(img.public_id)
+    );
+    const allImages = [...remainingImages, ...newImages];
+
+    if (allImages.length > 0) {
+      updateData.images = allImages;
+    }
+
+    // Handle type-specific fields based on itemType or use existing type
+    const finalType = itemType || item.itemType;
+
+    if (finalType === 'lost') {
+      const lostLocation = (req.body.lostLocation || '').trim();
+      const lostTime = req.body.lostTime;
+
+      if (lostLocation && !lostLocation.trim()) {
+        return res.status(400).json({
+          success: false,
+          message: 'lostLocation cannot be empty',
+        });
+      }
+
+      if (lostLocation) updateData.lostLocation = lostLocation;
+      if (lostTime) updateData.lostTime = lostTime;
+    }
+
+    if (finalType === 'found') {
+      const foundLocation = (req.body.foundLocation || '').trim();
+      const foundTime = req.body.foundTime;
+      const foundItemStatus = (req.body.foundItemStatus || '').trim();
+
+      if (foundLocation && !foundLocation.trim()) {
+        return res.status(400).json({
+          success: false,
+          message: 'foundLocation cannot be empty',
+        });
+      }
+
+      if (foundItemStatus && !foundItemStatus.trim()) {
+        return res.status(400).json({
+          success: false,
+          message: 'foundItemStatus cannot be empty',
+        });
+      }
+
+      if (foundLocation) updateData.foundLocation = foundLocation;
+      if (foundTime) updateData.foundTime = foundTime;
+      if (foundItemStatus) updateData.foundItemStatus = foundItemStatus;
+    }
+
+    if (finalType === 'sale') {
+      const price = req.body.price;
+      const deliveryLocation = (req.body.deliveryLocation || '').trim();
+      const itemCondition = (req.body.itemCondition || '').trim();
+
+      if (price !== null && price !== undefined && price !== '') {
+        if (parseFloat(price) < 0) {
+          return res.status(400).json({
+            success: false,
+            message: 'price cannot be negative',
+          });
+        }
+        updateData.price = parseFloat(price);
+      }
+
+      if (deliveryLocation && !deliveryLocation.trim()) {
+        return res.status(400).json({
+          success: false,
+          message: 'deliveryLocation cannot be empty',
+        });
+      }
+
+      if (itemCondition && !itemCondition.trim()) {
+        return res.status(400).json({
+          success: false,
+          message: 'itemCondition cannot be empty',
+        });
+      }
+
+      if (deliveryLocation) updateData.deliveryLocation = deliveryLocation;
+      if (itemCondition) updateData.itemCondition = itemCondition;
+    }
+
+    // Update item
+    const updatedItem = await Item.findByIdAndUpdate(
+      id,
+      { $set: updateData },
+      { new: true, runValidators: true }
+    ).populate('reportedBy', 'fullName email studentId');
+
+    return res.status(200).json({
+      success: true,
+      message: 'Item updated successfully',
+      data: {
+        item: updatedItem,
+      },
+    });
+  } catch (error) {
+    console.error('Update item error:', {
+      name: error.name,
+      message: error.message,
+      stack: error.stack,
+      body: req.body,
+    });
+
+    if (error.name === 'ValidationError') {
+      const firstError = Object.values(error.errors)[0]?.message || 'Invalid item data';
+      return res.status(400).json({
+        success: false,
+        message: firstError,
+      });
+    }
+
+    return res.status(500).json({
+      success: false,
+      message: 'Server error while updating item',
+    });
+  }
+};
+
 module.exports = {
   createItem,
   getItems,
   getItemById,
+  updateItem,
 };
