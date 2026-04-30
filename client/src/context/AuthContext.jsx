@@ -10,8 +10,7 @@ import {
   resendCode as resendCodeApi,
   tokenStore,
 } from '../services/api';
-
-export const AuthContext = createContext(null);
+import { AuthContext } from './AuthContextBase';
 
 export function AuthProvider({ children }) {
   const [user, setUser] = useState(null);

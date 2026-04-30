@@ -1,3 +1,4 @@
+const mongoose = require('mongoose');
 const Item = require('../models/Item');
 
 const normalizeTags = (rawTags) => {
@@ -282,7 +283,44 @@ const getItems = async (req, res) => {
   }
 };
 
+const getItemById = async (req, res) => {
+  try {
+    const { id } = req.params;
+
+    if (!mongoose.Types.ObjectId.isValid(id)) {
+      return res.status(400).json({
+        success: false,
+        message: 'Invalid item id',
+      });
+    }
+
+    const item = await Item.findById(id).populate('reportedBy', 'fullName email studentId avatar');
+
+    if (!item) {
+      return res.status(404).json({
+        success: false,
+        message: 'Item not found',
+      });
+    }
+
+    return res.status(200).json({
+      success: true,
+      data: {
+        item,
+      },
+    });
+  } catch (error) {
+    console.error('Get item by id error:', error);
+
+    return res.status(500).json({
+      success: false,
+      message: 'Server error while loading item',
+    });
+  }
+};
+
 module.exports = {
   createItem,
   getItems,
+  getItemById,
 };

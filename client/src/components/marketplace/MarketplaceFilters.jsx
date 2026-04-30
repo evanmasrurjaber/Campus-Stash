@@ -4,7 +4,6 @@ const CONDITION_OPTIONS = ['New', 'Good', 'Used', 'Fair'];
 export default function MarketplaceFilters({
   state,
   filters,
-  onStateChange,
   onFilterChange,
   onClear,
 }) {

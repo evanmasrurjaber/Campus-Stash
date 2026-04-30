@@ -75,6 +75,7 @@ export const createItem = (formData) =>
       },
     }),
   );
+export const getItemById = (itemId) => unwrap(api.get(`/items/${itemId}`));
 export const getItems = (params = {}, config = {}) => unwrap(api.get('/items', { params, ...config }));
 export const reportLostItem = (formData) =>
   unwrap(

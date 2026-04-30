@@ -79,6 +79,22 @@ const formatRelativeTime = (isoDateString) => {
   return date.toLocaleDateString([], { month: 'short', day: 'numeric' });
 };
 
+const formatPostTypeLabel = (postType) => {
+  if (postType === 'listing' || postType === 'saleItem') {
+    return 'Marketplace Listing';
+  }
+
+  if (postType === 'lostItem') {
+    return 'Lost Item Post';
+  }
+
+  if (postType === 'foundItem') {
+    return 'Found Item Post';
+  }
+
+  return 'CampusStash Post';
+};
+
 function ConversationRow({ conversation, active, onClick }) {
   const avatarUrl = conversation?.otherUser?.avatar?.url || '';
   const name = conversation?.otherUser?.fullName || 'CampusStash User';
@@ -115,7 +131,7 @@ function ConversationRow({ conversation, active, onClick }) {
           </div>
 
           <p className="mt-1 truncate text-xs font-semibold text-primary/80">
-            {conversation.postType === 'listing' ? 'Marketplace Listing' : 'Lost and Found Post'}
+            {formatPostTypeLabel(conversation.postType)}
           </p>
 
           <p className="mt-1 truncate text-xs text-on-surface-variant">{conversation.latestMessage || 'No messages yet'}</p>

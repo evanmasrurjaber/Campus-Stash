@@ -45,15 +45,31 @@ const formatMessageTime = (isoDateString) => {
 };
 
 const formatPostTypeLabel = (postType) => {
-  if (postType === 'listing') {
+  if (postType === 'listing' || postType === 'saleItem') {
     return 'Marketplace Listing';
   }
 
   if (postType === 'lostItem') {
-    return 'Lost and Found Post';
+    return 'Lost Item Post';
+  }
+
+  if (postType === 'foundItem') {
+    return 'Found Item Post';
   }
 
   return 'CampusStash Post';
+};
+
+const formatPostTypeBadge = (postType) => {
+  if (postType === 'listing' || postType === 'saleItem') {
+    return 'Sale';
+  }
+
+  if (postType === 'foundItem') {
+    return 'Found';
+  }
+
+  return 'Lost';
 };
 
 function UserAvatar({ user, sizeClass = 'h-8 w-8' }) {
@@ -144,7 +160,7 @@ export default function ChatThreadPanel({
         </div>
 
         <span className="rounded-full bg-primary/10 px-2.5 py-1 text-[11px] font-bold uppercase tracking-wider text-primary">
-          {conversation.postType === 'listing' ? 'Sale' : 'Recovery'}
+          {formatPostTypeBadge(conversation.postType)}
         </span>
       </header>
 

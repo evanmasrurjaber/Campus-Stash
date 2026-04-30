@@ -306,7 +306,8 @@ export default function CreateEntryPage() {
         formData.append('images', file);
       });
 
-      await createItem(formData);
+      const response = await createItem(formData);
+      const createdItemId = response?.data?.item?._id;
 
       setForm(createInitialForm());
       setTagInput('');
@@ -315,8 +316,12 @@ export default function CreateEntryPage() {
       setSuccessMessage('Your item has been posted successfully!');
 
       setTimeout(() => {
-        navigate('/dashboard');
-      }, 2000);
+        if (createdItemId) {
+          navigate(`/items/${createdItemId}`);
+        } else {
+          navigate('/dashboard');
+        }
+      }, 1200);
     } catch (requestError) {
       setError(getApiErrorMessage(requestError, 'Could not create your listing'));
     } finally {

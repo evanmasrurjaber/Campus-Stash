@@ -1,3 +1,5 @@
+import { useNavigate } from 'react-router-dom';
+
 const getSellerLabel = (user) => {
   const name = String(user?.fullName || '').trim();
   return name || 'Campus User';
@@ -21,6 +23,7 @@ const formatPrice = (value) => {
 };
 
 export default function MarketplaceCard({ item, variant = 'sale' }) {
+  const navigate = useNavigate();
   const sellerName = getSellerLabel(item.reportedBy);
   const category = item.category || 'General';
   const imageUrl = item.images?.[0]?.url;
@@ -40,8 +43,29 @@ export default function MarketplaceCard({ item, variant = 'sale' }) {
 
   const ctaLabel = variant === 'sale' ? 'View Item' : variant === 'lost' ? 'Help Find' : 'Claim Item';
 
+  const handleNavigate = () => {
+    if (!item?._id) {
+      return;
+    }
+
+    navigate(`/items/${item._id}`);
+  };
+
+  const handleKeyDown = (event) => {
+    if (event.key === 'Enter' || event.key === ' ') {
+      event.preventDefault();
+      handleNavigate();
+    }
+  };
+
   return (
-    <article className="group overflow-hidden rounded-2xl bg-surface-container-lowest shadow-sm transition-all hover:-translate-y-1 hover:shadow-md">
+    <article
+      className="group cursor-pointer overflow-hidden rounded-2xl bg-surface-container-lowest shadow-sm transition-all hover:-translate-y-1 hover:shadow-md"
+      onClick={handleNavigate}
+      onKeyDown={handleKeyDown}
+      role="button"
+      tabIndex={0}
+    >
       <div className="relative h-52 overflow-hidden bg-surface-container-low">
         {imageUrl ? (
           <img
@@ -75,8 +99,7 @@ export default function MarketplaceCard({ item, variant = 'sale' }) {
             <p className="truncate text-xs font-semibold uppercase tracking-wider text-outline">{detailLabel}</p>
             <p className="truncate text-sm font-medium text-on-surface-variant">{sellerName}</p>
           </div>
-          <button
-            type="button"
+          <span
             className={`rounded-xl px-4 py-2 text-sm font-bold transition-transform active:scale-95 ${
               variant === 'lost'
                 ? 'bg-tertiary-fixed text-on-tertiary-fixed'
@@ -84,7 +107,7 @@ export default function MarketplaceCard({ item, variant = 'sale' }) {
             }`}
           >
             {ctaLabel}
-          </button>
+          </span>
         </div>
       </div>
     </article>
