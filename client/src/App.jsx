@@ -9,6 +9,7 @@ import ForgotPasswordPage from './pages/ForgotPasswordPage';
 import ResetPasswordPage from './pages/ResetPasswordPage';
 import LandingPage from './pages/LandingPage';
 import CreateEntryPage from './pages/CreateEntryPage';
+import EditEntryPage from './pages/EditEntryPage';
 import ProfilePage from './pages/ProfilePage';
 import InboxPage from './pages/InboxPage';
 import MarketplacePage from './pages/MarketplacePage';
@@ -33,6 +34,7 @@ function App() {
           <Route path="/create-entry" element={<CreateEntryPage />} />
           <Route path="/inbox" element={<InboxPage />} />
           <Route path="/items/:itemId" element={<ItemDetailPage />} />
+          <Route path="/items/:itemId/edit" element={<EditEntryPage />} />
         </Route>
 
         <Route path="/dashboard" element={<Navigate to="/" replace />} />
