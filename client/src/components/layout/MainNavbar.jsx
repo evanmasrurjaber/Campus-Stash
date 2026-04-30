@@ -85,7 +85,7 @@ export default function MainNavbar({ user, onLogout }) {
   return (
     <header className="sticky top-0 z-50 border-b border-outline-variant/40 bg-surface/95 backdrop-blur-lg">
       <nav className="mx-auto flex w-full max-w-7xl items-center justify-between gap-4 px-4 py-3 md:px-6">
-        <Link to="/dashboard" className="inline-flex items-center gap-2 text-primary">
+        <Link to="/" className="inline-flex items-center gap-2 text-primary">
           <img src="/CampusStash_logo.png" alt="CampusStash logo" className="h-9 w-auto" />
           <span className="font-headline text-xl font-extrabold tracking-tight">CampusStash</span>
         </Link>

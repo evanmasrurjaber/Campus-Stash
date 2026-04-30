@@ -7,7 +7,7 @@ import SignupPage from './pages/SignupPage';
 import VerifyEmailPage from './pages/VerifyEmailPage';
 import ForgotPasswordPage from './pages/ForgotPasswordPage';
 import ResetPasswordPage from './pages/ResetPasswordPage';
-import DashboardPage from './pages/DashboardPage';
+import LandingPage from './pages/LandingPage';
 import CreateEntryPage from './pages/CreateEntryPage';
 import ProfilePage from './pages/ProfilePage';
 import InboxPage from './pages/InboxPage';
@@ -26,15 +26,15 @@ function App() {
         </Route>
 
         <Route element={<ProtectedRoute />}>
-          <Route path="/dashboard" element={<DashboardPage />} />
+          <Route path="/" element={<LandingPage />} />
           <Route path="/marketplace" element={<MarketplacePage />} />
           <Route path="/profile" element={<ProfilePage />} />
           <Route path="/create-entry" element={<CreateEntryPage />} />
           <Route path="/inbox" element={<InboxPage />} />
         </Route>
 
-        <Route path="/" element={<Navigate to="/login" replace />} />
-        <Route path="*" element={<Navigate to="/login" replace />} />
+        <Route path="/dashboard" element={<Navigate to="/" replace />} />
+        <Route path="*" element={<Navigate to="/" replace />} />
       </Routes>
     </AuthProvider>
   );

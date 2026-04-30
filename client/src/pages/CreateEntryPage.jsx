@@ -315,7 +315,7 @@ export default function CreateEntryPage() {
       setSuccessMessage('Your item has been posted successfully!');
 
       setTimeout(() => {
-        navigate('/dashboard');
+        navigate('/');
       }, 2000);
     } catch (requestError) {
       setError(getApiErrorMessage(requestError, 'Could not create your listing'));

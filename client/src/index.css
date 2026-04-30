@@ -42,3 +42,11 @@ body {
   background: #d8d5e1;
   border-radius: 9999px;
 }
+
+.whisper-shadow {
+  box-shadow: 0 8px 24px rgba(27, 27, 33, 0.06);
+}
+
+.hero-gradient {
+  background: linear-gradient(135deg, #000666 0%, #1a237e 100%);
+}
