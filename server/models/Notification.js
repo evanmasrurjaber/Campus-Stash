@@ -87,7 +87,7 @@ notificationSchema.index({ recipient: 1, createdAt: -1 });
 notificationSchema.index({ type: 1, createdAt: -1 });
 notificationSchema.index({ relatedModel: 1, relatedId: 1 });
 
-notificationSchema.pre('validate', function validateNotification(next) {
+notificationSchema.pre('validate', function validateNotification() {
   if (this.isRead && !this.readAt) {
     this.readAt = new Date();
   }
@@ -95,8 +95,6 @@ notificationSchema.pre('validate', function validateNotification(next) {
   if (!this.isRead && this.readAt) {
     this.readAt = null;
   }
-
-  next();
 });
 
 notificationSchema.set('toJSON', {

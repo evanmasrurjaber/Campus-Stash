@@ -22,8 +22,8 @@ const messageSchema = new mongoose.Schema(
       type: String,
       required: [true, 'Post type is required'],
       enum: {
-        values: ['listing', 'lostItem'],
-        message: 'Post type must be either listing or lostItem',
+        values: ['listing', 'lostItem', 'foundItem', 'saleItem'],
+        message: 'Post type must be listing, lostItem, foundItem, or saleItem',
       },
       index: true,
     },
@@ -45,12 +45,10 @@ messageSchema.index({ postType: 1, postId: 1, createdAt: 1 });
 messageSchema.index({ sender: 1, createdAt: -1 });
 messageSchema.index({ recipient: 1, sender: 1, postType: 1, postId: 1, createdAt: 1 });
 
-messageSchema.pre('validate', function validateSelfMessaging(next) {
+messageSchema.pre('validate', function validateSelfMessaging() {
   if (this.sender && this.recipient && this.sender.equals(this.recipient)) {
     this.invalidate('recipient', 'Sender and recipient must be different users');
   }
-
-  next();
 });
 
 messageSchema.set('toJSON', {
