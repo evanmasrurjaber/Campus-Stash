@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from 'react';
-import { Link, useNavigate } from 'react-router-dom';
+import { Link, useLocation, useNavigate } from 'react-router-dom';
 
 export default function MainNavbar({ user, onLogout }) {
   const [isProfileMenuOpen, setIsProfileMenuOpen] = useState(false);

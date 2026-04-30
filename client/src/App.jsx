@@ -11,6 +11,7 @@ import DashboardPage from './pages/DashboardPage';
 import CreateEntryPage from './pages/CreateEntryPage';
 import ProfilePage from './pages/ProfilePage';
 import InboxPage from './pages/InboxPage';
+import MarketplacePage from './pages/MarketplacePage';
 import ItemDetailPage from './pages/ItemDetailPage';
 
 function App() {
