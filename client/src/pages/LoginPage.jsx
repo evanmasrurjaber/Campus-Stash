@@ -15,7 +15,7 @@ export default function LoginPage() {
   const { login, authLoading } = useAuth();
   const navigate = useNavigate();
   const location = useLocation();
-  const redirectTo = location.state?.from?.pathname || '/dashboard';
+  const redirectTo = location.state?.from?.pathname || '/';
 
   useEffect(() => {
     const previousBodyClass = document.body.className;

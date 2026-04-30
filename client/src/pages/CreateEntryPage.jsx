@@ -316,12 +316,8 @@ export default function CreateEntryPage() {
       setSuccessMessage('Your item has been posted successfully!');
 
       setTimeout(() => {
-        if (createdItemId) {
-          navigate(`/items/${createdItemId}`);
-        } else {
-          navigate('/dashboard');
-        }
-      }, 1200);
+        navigate('/');
+      }, 2000);
     } catch (requestError) {
       setError(getApiErrorMessage(requestError, 'Could not create your listing'));
     } finally {

@@ -78,7 +78,7 @@ export default function VerifyEmailPage() {
     setIsVerifying(true);
     try {
       await verifyEmail(verificationCode);
-      navigate('/dashboard', { replace: true });
+      navigate('/', { replace: true });
     } catch (err) {
       setError(err.message || 'Verification failed. Please try again.');
       setCode(['', '', '', '', '', '']);
