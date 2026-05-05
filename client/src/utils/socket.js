@@ -11,28 +11,36 @@ export function connect(userId, serverUrl) {
     window.location.origin;
 
   if (!socket) {
-    socket = clientIo(resolvedUrl, {
-      autoConnect: true,
-      reconnection: true,
-      withCredentials: true,
-    });
+    try {
+      socket = clientIo(resolvedUrl, {
+        autoConnect: true,
+        reconnection: true,
+        withCredentials: true,
+      });
 
-    socket.on('connect', () => {
-      if (currentUserId) {
-        socket.emit('identify', currentUserId);
-      }
-    });
+      socket.on('connect', () => {
+        if (currentUserId) {
+          socket.emit('identify', currentUserId);
+        }
+      });
 
-    socket.on('reconnect', () => {
-      if (currentUserId) {
-        socket.emit('identify', currentUserId);
-      }
-    });
+      socket.on('reconnect', () => {
+        if (currentUserId) {
+          socket.emit('identify', currentUserId);
+        }
+      });
+
+      socket.on('connect_error', (error) => {
+        console.error('Socket connection error:', error);
+      });
+    } catch (err) {
+      console.error('Socket initialization error:', err);
+    }
   }
 
   currentUserId = userId || currentUserId;
 
-  if (socket.connected && currentUserId) {
+  if (socket && socket.connected && currentUserId) {
     socket.emit('identify', currentUserId);
   }
 
@@ -41,8 +49,13 @@ export function connect(userId, serverUrl) {
 
 export function disconnect() {
   if (socket) {
-    socket.disconnect();
-    socket = null;
+    try {
+      socket.disconnect();
+      socket = null;
+    } catch (err) {
+      console.error('Error disconnecting socket:', err);
+      socket = null;
+    }
   }
   currentUserId = null;
 }

@@ -114,19 +114,23 @@ export function AuthProvider({ children }) {
       return;
     }
 
-    connectSocket(user.id);
-    const socket = getSocket();
+    try {
+      connectSocket(user.id);
+      const socket = getSocket();
 
-    const handleMessageReceived = (payload) => {
-      window.dispatchEvent(new CustomEvent('inbox:update', { detail: payload }));
-    };
+      const handleMessageReceived = (payload) => {
+        window.dispatchEvent(new CustomEvent('inbox:update', { detail: payload }));
+      };
 
-    socket?.off('message_received', handleMessageReceived);
-    socket?.on('message_received', handleMessageReceived);
-
-    return () => {
       socket?.off('message_received', handleMessageReceived);
-    };
+      socket?.on('message_received', handleMessageReceived);
+
+      return () => {
+        socket?.off('message_received', handleMessageReceived);
+      };
+    } catch (err) {
+      console.error('Error setting up socket connection:', err);
+    }
   }, [user]);
 
   const verifyEmail = async (code) => {
