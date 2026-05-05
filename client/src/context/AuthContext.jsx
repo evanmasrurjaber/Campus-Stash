@@ -1,4 +1,4 @@
-import { createContext, useCallback, useEffect, useMemo, useState } from 'react';
+import { useCallback, useEffect, useMemo, useState } from 'react';
 import {
   forgotPassword as forgotPasswordApi,
   getApiErrorMessage,
@@ -16,8 +16,6 @@ import {
   getSocket,
 } from '../utils/socket';
 
-// eslint-disable-next-line react-refresh/only-export-components
-export const AuthContext = createContext(null);
 import { AuthContext } from './AuthContextBase';
 
 export function AuthProvider({ children }) {
