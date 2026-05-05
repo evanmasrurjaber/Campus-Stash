@@ -222,7 +222,12 @@ const getItems = async (req, res) => {
     }
 
     if (q && String(q).trim()) {
-      query.$text = { $search: String(q).trim() };
+      const searchTerm = String(q).trim();
+      query.$or = [
+        { title: { $regex: searchTerm, $options: 'i' } },
+        { description: { $regex: searchTerm, $options: 'i' } },
+        { category: { $regex: searchTerm, $options: 'i' } },
+      ];
     }
 
     if (itemCondition && query.itemType === 'sale') {
