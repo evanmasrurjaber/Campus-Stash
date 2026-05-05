@@ -98,6 +98,8 @@ export default function ChatThreadPanel({
   error,
   onSendMessage,
   onBack,
+  onDeleteConversation,
+  deleteDisabled = false,
 }) {
   const [draftMessage, setDraftMessage] = useState('');
 
@@ -135,6 +137,8 @@ export default function ChatThreadPanel({
 
   const otherUserName = conversation.otherUser?.fullName || 'CampusStash User';
   const postTypeLabel = formatPostTypeLabel(conversation.postType);
+  const postTitle = conversation?.postTitle?.trim() || postTypeLabel;
+  const postImageUrl = conversation?.postImageUrl || '';
 
   return (
     <section className="flex h-full min-h-[520px] flex-col overflow-hidden rounded-2xl border border-outline-variant/40 bg-surface-container-lowest">
@@ -151,17 +155,44 @@ export default function ChatThreadPanel({
             </button>
           ) : null}
 
-          <UserAvatar user={conversation.otherUser} sizeClass="h-10 w-10" />
+          <div className="flex min-w-0 items-center gap-2 rounded-full bg-surface-container-high px-3 py-1.5">
+            {postImageUrl ? (
+              <img src={postImageUrl} alt={postTitle || 'Item thumbnail'} className="h-6 w-6 rounded-md object-cover" />
+            ) : (
+              <span className="flex h-6 w-6 items-center justify-center rounded-md bg-surface-container-lowest text-outline">
+                <span className="material-symbols-outlined text-sm">image</span>
+              </span>
+            )}
+            <span className="truncate text-xs font-bold text-primary" title={postTitle}>
+              {postTitle}
+            </span>
+          </div>
 
-          <div className="min-w-0">
-            <p className="truncate text-sm font-bold text-on-surface">{otherUserName}</p>
-            <p className="truncate text-xs font-semibold text-primary/80">{postTypeLabel}</p>
+          <span className="text-xs tracking-widest text-outline">•</span>
+
+          <div className="flex min-w-0 items-center gap-2">
+            <span className="truncate text-sm font-bold text-on-surface">{otherUserName}</span>
           </div>
         </div>
 
-        <span className="rounded-full bg-primary/10 px-2.5 py-1 text-[11px] font-bold uppercase tracking-wider text-primary">
-          {formatPostTypeBadge(conversation.postType)}
-        </span>
+        <div className="flex items-center gap-2">
+          {onDeleteConversation ? (
+            <button
+              type="button"
+              onClick={onDeleteConversation}
+              disabled={deleteDisabled}
+              className="inline-flex h-9 w-9 items-center justify-center rounded-full text-on-surface-variant transition-colors hover:bg-surface-container-high disabled:cursor-not-allowed disabled:opacity-60"
+              aria-label="Delete conversation"
+              title="Delete conversation"
+            >
+              <span className="material-symbols-outlined text-[20px]">delete</span>
+            </button>
+          ) : null}
+
+          <span className="rounded-full bg-primary/10 px-2.5 py-1 text-[11px] font-bold uppercase tracking-wider text-primary">
+            {formatPostTypeBadge(conversation.postType)}
+          </span>
+        </div>
       </header>
 
       <div className="border-b border-outline-variant/10 bg-tertiary-fixed/10 px-4 py-3 md:px-5">

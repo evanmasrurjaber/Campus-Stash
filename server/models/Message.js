@@ -34,6 +34,13 @@ const messageSchema = new mongoose.Schema(
       minlength: [1, 'Message content cannot be empty'],
       maxlength: [5000, 'Message content cannot exceed 5000 characters'],
     },
+    deletedFor: [
+      {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: 'User',
+        index: true,
+      },
+    ],
   },
   {
     timestamps: { createdAt: true, updatedAt: false },

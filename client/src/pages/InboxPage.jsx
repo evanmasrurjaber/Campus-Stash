@@ -7,7 +7,9 @@ import { useAuth } from '../hooks/useAuth';
 import {
   getApiErrorMessage,
   getInbox,
+  getItemById,
   getThreadWithUser,
+  deleteConversation,
   sendMessage,
 } from '../services/api';
 import { connect as connectSocket } from '../utils/socket';
@@ -40,6 +42,8 @@ const buildConversationFromMessage = (message, currentUserId) => {
     otherUserId,
     postId,
     postType,
+    postTitle: message?.postTitle || '',
+    postImageUrl: message?.postImageUrl || '',
     latestMessage: message?.content || '',
     latestAt: message?.createdAt || '',
   };
@@ -47,9 +51,17 @@ const buildConversationFromMessage = (message, currentUserId) => {
 
 const upsertConversationByMessage = (conversations, message, currentUserId) => {
   const nextConversation = buildConversationFromMessage(message, currentUserId);
+  const existingConversation = conversations.find((conversation) => conversation.key === nextConversation.key);
+  const mergedConversation = existingConversation
+    ? {
+        ...nextConversation,
+        postTitle: existingConversation.postTitle,
+        postImageUrl: existingConversation.postImageUrl,
+      }
+    : nextConversation;
   const nextConversations = conversations.filter((conversation) => conversation.key !== nextConversation.key);
 
-  return [nextConversation, ...nextConversations].sort(
+  return [mergedConversation, ...nextConversations].sort(
     (first, second) => new Date(second.latestAt) - new Date(first.latestAt),
   );
 };
@@ -105,9 +117,69 @@ const formatPostTypeLabel = (postType) => {
   return 'CampusStash Post';
 };
 
+const formatPostTypePrefix = (postType) => {
+  if (postType === 'listing' || postType === 'saleItem') {
+    return 'For Sale';
+  }
+
+  if (postType === 'lostItem') {
+    return 'Lost';
+  }
+
+  if (postType === 'foundItem') {
+    return 'Found';
+  }
+
+  return 'Post';
+};
+
+const getPrimaryImageUrl = (item) => item?.images?.[0]?.url || '';
+
+const hydrateConversationsWithItems = async (conversationList) => {
+  const uniquePostIds = Array.from(new Set(conversationList.map((conversation) => conversation.postId).filter(Boolean)));
+
+  if (uniquePostIds.length === 0) {
+    return conversationList;
+  }
+
+  const itemMap = new Map();
+
+  await Promise.all(
+    uniquePostIds.map(async (postId) => {
+      try {
+        const itemResponse = await getItemById(postId);
+        const item = itemResponse?.data?.item;
+
+        if (item) {
+          itemMap.set(postId, item);
+        }
+      } catch (error) {
+        // Ignore missing/unauthorized items; keep conversation data intact.
+      }
+    }),
+  );
+
+  return conversationList.map((conversation) => {
+    const item = itemMap.get(conversation.postId);
+
+    if (!item) {
+      return conversation;
+    }
+
+    return {
+      ...conversation,
+      postTitle: item.title || conversation.postTitle,
+      postImageUrl: getPrimaryImageUrl(item) || conversation.postImageUrl,
+    };
+  });
+};
+
 function ConversationRow({ conversation, active, onClick }) {
   const avatarUrl = conversation?.otherUser?.avatar?.url || '';
   const name = conversation?.otherUser?.fullName || 'CampusStash User';
+  const postTitle = conversation?.postTitle?.trim() || formatPostTypeLabel(conversation.postType);
+  const postPrefix = formatPostTypePrefix(conversation.postType);
+  const postImageUrl = conversation?.postImageUrl || '';
   const initials = name
     .split(/\s+/)
     .filter(Boolean)
@@ -140,11 +212,21 @@ function ConversationRow({ conversation, active, onClick }) {
             <span className="text-[10px] font-semibold text-outline">{formatRelativeTime(conversation.latestAt)}</span>
           </div>
 
-          <p className="mt-1 truncate text-xs font-semibold text-primary/80">
-            {formatPostTypeLabel(conversation.postType)}
+          <p className="mt-1 truncate text-xs font-bold text-primary">
+            {postPrefix}: {postTitle}
           </p>
 
           <p className="mt-1 truncate text-xs text-on-surface-variant">{conversation.latestMessage || 'No messages yet'}</p>
+        </div>
+
+        <div className="flex-shrink-0">
+          {postImageUrl ? (
+            <img src={postImageUrl} alt={postTitle || 'Item preview'} className="h-10 w-10 rounded-lg object-cover" />
+          ) : (
+            <span className="flex h-10 w-10 items-center justify-center rounded-lg bg-surface-container-high text-outline">
+              <span className="material-symbols-outlined text-base">image</span>
+            </span>
+          )}
         </div>
       </div>
     </button>
@@ -161,6 +243,7 @@ export default function InboxPage() {
   const [threadLoading, setThreadLoading] = useState(false);
   const [threadError, setThreadError] = useState('');
   const [sendingMessage, setSendingMessage] = useState(false);
+  const [deletingConversation, setDeletingConversation] = useState(false);
   const [conversations, setConversations] = useState([]);
   const [selectedConversationKey, setSelectedConversationKey] = useState('');
   const [threadMessages, setThreadMessages] = useState([]);
@@ -210,17 +293,18 @@ export default function InboxPage() {
 
       const messages = inboxResponse?.data?.messages || [];
       const mappedConversations = messages.map((message) => buildConversationFromMessage(message, profileResponse?.id));
+      const hydratedConversations = await hydrateConversationsWithItems(mappedConversations);
 
-      setConversations(mappedConversations);
+      setConversations(hydratedConversations);
 
-      const hasPreservedSelection = mappedConversations.some((item) => item.key === preservedSelectionKey);
+      const hasPreservedSelection = hydratedConversations.some((item) => item.key === preservedSelectionKey);
       const nextSelectedKey = hasPreservedSelection
         ? preservedSelectionKey
-        : mappedConversations[0]?.key || '';
+        : hydratedConversations[0]?.key || '';
 
       setSelectedConversationKey(nextSelectedKey);
 
-      const nextConversation = mappedConversations.find((item) => item.key === nextSelectedKey) || null;
+      const nextConversation = hydratedConversations.find((item) => item.key === nextSelectedKey) || null;
       await fetchThread(nextConversation);
     } catch (requestError) {
       setInboxError(getApiErrorMessage(requestError, 'Could not load your inbox'));
@@ -243,6 +327,37 @@ export default function InboxPage() {
       return undefined;
     }
 
+    const hydrateConversationFromPost = async (postId, conversationKey) => {
+      if (!postId || !conversationKey) {
+        return;
+      }
+
+      try {
+        const itemResponse = await getItemById(postId);
+        const item = itemResponse?.data?.item;
+
+        if (!item) {
+          return;
+        }
+
+        setConversations((currentConversations) =>
+          currentConversations.map((conversation) => {
+            if (conversation.key !== conversationKey) {
+              return conversation;
+            }
+
+            return {
+              ...conversation,
+              postTitle: item.title || conversation.postTitle,
+              postImageUrl: getPrimaryImageUrl(item) || conversation.postImageUrl,
+            };
+          }),
+        );
+      } catch (error) {
+        // Ignore hydration errors and keep the conversation visible.
+      }
+    };
+
     const handleMessageReceived = (payload) => {
       const message = payload?.message;
 
@@ -256,9 +371,24 @@ export default function InboxPage() {
           : toIdString(message.sender);
       const incomingConversationKey = `${message.postType || 'listing'}:${toIdString(message.postId)}:${otherUserId}`;
 
-      setConversations((currentConversations) =>
-        upsertConversationByMessage(currentConversations, message, profile.id),
-      );
+      const incomingConversation = buildConversationFromMessage(message, profile.id);
+      const incomingPostId = incomingConversation.postId;
+      let needsHydration = false;
+
+      setConversations((currentConversations) => {
+        const nextConversations = upsertConversationByMessage(currentConversations, message, profile.id);
+        const nextConversation = nextConversations.find((conversation) => conversation.key === incomingConversation.key);
+
+        needsHydration = Boolean(
+          nextConversation && !nextConversation.postTitle && !nextConversation.postImageUrl,
+        );
+
+        return nextConversations;
+      });
+
+      if (needsHydration && incomingPostId) {
+        hydrateConversationFromPost(incomingPostId, incomingConversation.key);
+      }
 
       if (selectedConversationKey === incomingConversationKey) {
         setThreadMessages((currentMessages) => {
@@ -323,6 +453,36 @@ export default function InboxPage() {
       setThreadError(getApiErrorMessage(requestError, 'Could not send message'));
     } finally {
       setSendingMessage(false);
+    }
+  };
+
+  const handleDeleteConversation = async () => {
+    if (!selectedConversation || deletingConversation) {
+      return;
+    }
+
+    const otherUserName = selectedConversation?.otherUser?.fullName || 'this user';
+    const confirmed = window.confirm(`Delete the conversation with ${otherUserName}? This cannot be undone.`);
+
+    if (!confirmed) {
+      return;
+    }
+
+    setDeletingConversation(true);
+    setThreadError('');
+
+    try {
+      await deleteConversation(
+        selectedConversation.otherUserId,
+        selectedConversation.postId,
+        selectedConversation.postType,
+      );
+
+      await fetchInboxData('');
+    } catch (requestError) {
+      setThreadError(getApiErrorMessage(requestError, 'Could not delete this conversation'));
+    } finally {
+      setDeletingConversation(false);
     }
   };
 
@@ -400,6 +560,8 @@ export default function InboxPage() {
               sendPending={sendingMessage}
               error={threadError}
               onSendMessage={handleSendMessage}
+              onDeleteConversation={handleDeleteConversation}
+              deleteDisabled={deletingConversation || threadLoading}
               onBack={showChatPanelOnMobile ? () => setSelectedConversationKey('') : undefined}
             />
           </div>

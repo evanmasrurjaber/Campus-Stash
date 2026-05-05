@@ -1,6 +1,7 @@
 const mongoose = require('mongoose');
 const Message = require('../models/Message');
 const Notification = require('../models/Notification');
+const Item = require('../models/Item');
 const User = require('../models/User');
 const { getIO } = require('../utils/socket');
 
@@ -66,8 +67,8 @@ const sendMessage = async (req, res) => {
       content,
     });
 
-    await message.populate('sender', 'fullName email studentId');
-    await message.populate('recipient', 'fullName email studentId');
+    await message.populate('sender', 'fullName email studentId avatar');
+    await message.populate('recipient', 'fullName email studentId avatar');
 
     const notification = await Notification.create({
       recipient: recipientId,
@@ -82,10 +83,27 @@ const sendMessage = async (req, res) => {
       postType,
     });
 
+    let postTitle = '';
+    let postImageUrl = '';
+
+    try {
+      const item = await Item.findById(postId).select('title images');
+      postTitle = item?.title || '';
+      postImageUrl = item?.images?.[0]?.url || '';
+    } catch (itemError) {
+      // Ignore item lookup issues and continue sending the message.
+    }
+
+    const messagePayload = {
+      ...message.toJSON(),
+      postTitle,
+      postImageUrl,
+    };
+
     const io = getIO();
     if (io) {
       io.to(String(recipientId)).emit('message_received', {
-        message,
+        message: messagePayload,
         notification,
       });
     }
@@ -94,7 +112,7 @@ const sendMessage = async (req, res) => {
       success: true,
       message: 'Message sent successfully',
       data: {
-        message,
+        message: messagePayload,
         notification: {
           id: notification._id,
           type: notification.type,
@@ -129,7 +147,10 @@ const getInbox = async (req, res) => {
     const [inboxResult] = await Message.aggregate([
       {
         $match: {
-          $or: [{ recipient: userId }, { sender: userId }],
+          $and: [
+            { $or: [{ recipient: userId }, { sender: userId }] },
+            { deletedFor: { $ne: userId } },
+          ],
         },
       },
       {
@@ -170,8 +191,8 @@ const getInbox = async (req, res) => {
     const messageIds = latestRows.map((row) => row.latestMessageId);
 
     const fetchedMessages = await Message.find({ _id: { $in: messageIds } })
-      .populate('sender', 'fullName email studentId')
-      .populate('recipient', 'fullName email studentId');
+      .populate('sender', 'fullName email studentId avatar')
+      .populate('recipient', 'fullName email studentId avatar');
 
     const messageMap = new Map(fetchedMessages.map((msg) => [msg._id.toString(), msg]));
     const messages = latestRows
@@ -221,8 +242,8 @@ const getMessagesOnPost = async (req, res) => {
       .sort({ createdAt: 1 })
       .skip(skip)
       .limit(PAGE_LIMIT)
-      .populate('sender', 'fullName email studentId')
-      .populate('recipient', 'fullName email studentId');
+      .populate('sender', 'fullName email studentId avatar')
+      .populate('recipient', 'fullName email studentId avatar');
 
     const totalCount = await Message.countDocuments({ postId, postType });
     const totalPages = Math.ceil(totalCount / PAGE_LIMIT);
@@ -271,12 +292,13 @@ const getThreadWithUser = async (req, res) => {
         { sender: currentUserId, recipient: otherUserId },
         { sender: otherUserId, recipient: currentUserId },
       ],
+      deletedFor: { $ne: currentUserId },
     })
       .sort({ createdAt: 1 })
       .skip(skip)
       .limit(PAGE_LIMIT)
-      .populate('sender', 'fullName email studentId')
-      .populate('recipient', 'fullName email studentId');
+      .populate('sender', 'fullName email studentId avatar')
+      .populate('recipient', 'fullName email studentId avatar');
 
     const totalCount = await Message.countDocuments({
       postId,
@@ -285,6 +307,7 @@ const getThreadWithUser = async (req, res) => {
         { sender: currentUserId, recipient: otherUserId },
         { sender: otherUserId, recipient: currentUserId },
       ],
+      deletedFor: { $ne: currentUserId },
     });
 
     const totalPages = Math.ceil(totalCount / PAGE_LIMIT);
@@ -311,9 +334,64 @@ const getThreadWithUser = async (req, res) => {
   }
 };
 
+const deleteThreadWithUser = async (req, res) => {
+  try {
+    const { otherUserId, postId, postType } = req.params;
+    const currentUserId = req.user._id;
+
+    if (!mongoose.Types.ObjectId.isValid(otherUserId)) {
+      return res.status(400).json({
+        success: false,
+        message: 'otherUserId must be a valid id',
+      });
+    }
+
+    if (!mongoose.Types.ObjectId.isValid(postId)) {
+      return res.status(400).json({
+        success: false,
+        message: 'postId must be a valid id',
+      });
+    }
+
+    if (!VALID_POST_TYPES.includes(postType)) {
+      return res.status(400).json({
+        success: false,
+        message: 'postType must be listing, lostItem, foundItem, or saleItem',
+      });
+    }
+
+    const result = await Message.updateMany({
+      postId,
+      postType,
+      $or: [
+        { sender: currentUserId, recipient: otherUserId },
+        { sender: otherUserId, recipient: currentUserId },
+      ],
+    },
+    {
+      $addToSet: { deletedFor: currentUserId },
+    });
+
+    return res.status(200).json({
+      success: true,
+      message: 'Conversation deleted for this user',
+      data: {
+        updatedCount: result.modifiedCount,
+      },
+    });
+  } catch (error) {
+    console.error('Delete thread error:', error.message);
+    return res.status(500).json({
+      success: false,
+      message: 'Server error while deleting conversation',
+    });
+  }
+};
+
 module.exports = {
   sendMessage,
   getInbox,
   getMessagesOnPost,
   getThreadWithUser,
+  deleteThreadWithUser,
 };

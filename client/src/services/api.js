@@ -67,6 +67,8 @@ export const getThreadWithUser = (otherUserId, postId, postType, page = 1) =>
       params: { page },
     }),
   );
+export const deleteConversation = (otherUserId, postId, postType) =>
+  unwrap(api.delete(`/messages/thread/${otherUserId}/${postId}/${postType}`));
 export const createItem = (formData) =>
   unwrap(
     api.post('/items', formData, {
