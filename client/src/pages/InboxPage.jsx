@@ -10,6 +10,7 @@ import {
   getThreadWithUser,
   sendMessage,
 } from '../services/api';
+import { connect as connectSocket } from '../utils/socket';
 
 const toIdString = (value) => {
   if (!value) {
@@ -42,6 +43,15 @@ const buildConversationFromMessage = (message, currentUserId) => {
     latestMessage: message?.content || '',
     latestAt: message?.createdAt || '',
   };
+};
+
+const upsertConversationByMessage = (conversations, message, currentUserId) => {
+  const nextConversation = buildConversationFromMessage(message, currentUserId);
+  const nextConversations = conversations.filter((conversation) => conversation.key !== nextConversation.key);
+
+  return [nextConversation, ...nextConversations].sort(
+    (first, second) => new Date(second.latestAt) - new Date(first.latestAt),
+  );
 };
 
 const formatRelativeTime = (isoDateString) => {
@@ -207,6 +217,55 @@ export default function InboxPage() {
   }, [fetchThread, refreshCurrentUser]);
 
   useEffect(() => {
+    if (!profile?.id) {
+      return undefined;
+    }
+
+    const socket = connectSocket(profile.id);
+
+    if (!socket) {
+      return undefined;
+    }
+
+    const handleMessageReceived = (payload) => {
+      const message = payload?.message;
+
+      if (!message) {
+        return;
+      }
+
+      const otherUserId =
+        toIdString(message.sender) === toIdString(profile.id)
+          ? toIdString(message.recipient)
+          : toIdString(message.sender);
+      const incomingConversationKey = `${message.postType || 'listing'}:${toIdString(message.postId)}:${otherUserId}`;
+
+      setConversations((currentConversations) =>
+        upsertConversationByMessage(currentConversations, message, profile.id),
+      );
+
+      if (selectedConversationKey === incomingConversationKey) {
+        setThreadMessages((currentMessages) => {
+          const incomingMessageId = toIdString(message._id);
+
+          if (incomingMessageId && currentMessages.some((existingMessage) => toIdString(existingMessage?._id) === incomingMessageId)) {
+            return currentMessages;
+          }
+
+          return [...currentMessages, message];
+        });
+      }
+    };
+
+    socket.off('message_received', handleMessageReceived);
+    socket.on('message_received', handleMessageReceived);
+
+    return () => {
+      socket.off('message_received', handleMessageReceived);
+    };
+  }, [profile?.id, selectedConversationKey]);
+
+  useEffect(() => {
     const previousBodyClass = document.body.className;
     document.body.className = 'bg-surface font-body text-on-surface min-h-screen';
 
@@ -216,18 +275,6 @@ export default function InboxPage() {
       document.body.className = previousBodyClass;
     };
   }, [fetchInboxData]);
-
-  useEffect(() => {
-    const handleInboxUpdate = () => {
-      fetchInboxData(selectedConversationKey);
-    };
-
-    window.addEventListener('inbox:update', handleInboxUpdate);
-
-    return () => {
-      window.removeEventListener('inbox:update', handleInboxUpdate);
-    };
-  }, [fetchInboxData, selectedConversationKey]);
 
   const handleLogout = () => {
     logout();
