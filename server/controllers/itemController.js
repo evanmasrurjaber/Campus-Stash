@@ -388,7 +388,7 @@ const updateItem = async (req, res) => {
           : Array.isArray(req.body.imagesToDelete)
             ? req.body.imagesToDelete
             : [];
-      } catch (e) {
+      } catch {
         imagesToDelete = [];
       }
     }

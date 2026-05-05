@@ -14,29 +14,14 @@
   "license": "ISC",
   "dependencies": {
     "bcryptjs": "^3.0.3",
-<<<<<<< HEAD
-    "cloudinary": "^1.41.3",
-=======
-<<<<<<< Updated upstream
-=======
     "cloudinary": "^2.10.0",
->>>>>>> Stashed changes
->>>>>>> Messaging
     "cors": "^2.8.6",
     "dotenv": "^17.3.1",
     "express": "^5.2.1",
     "jsonwebtoken": "^9.0.3",
     "mongoose": "^9.3.3",
-<<<<<<< HEAD
-    "multer": "^2.1.1",
-    "multer-storage-cloudinary": "^4.0.0",
-=======
-<<<<<<< Updated upstream
-=======
     "multer": "^2.1.1",
     "multer-storage-cloudinary": "^2.2.1",
->>>>>>> Stashed changes
->>>>>>> Messaging
     "nodemailer": "^8.0.4",
     "socket.io": "^4.8.1"
   },
