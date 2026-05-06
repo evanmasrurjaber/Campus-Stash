@@ -10,6 +10,7 @@ import { useAuth } from '../hooks/useAuth';
 export default function MyLostAndFoundPage() {
   const { user, logout } = useAuth();
   const navigate = useNavigate();
+  const currentUserId = user?.id || user?._id;
 
   const [items, setItems] = useState([]);
   const [activeTab, setActiveTab] = useState('lost');
@@ -37,9 +38,14 @@ export default function MyLostAndFoundPage() {
     setError('');
 
     try {
+      if (!currentUserId) {
+        setItems([]);
+        return;
+      }
+
       const response = await getItems({
         itemType: activeTab,
-        reportedBy: user?._id,
+        reportedBy: currentUserId,
       });
       setItems(response.data.items || []);
     } catch (err) {
@@ -50,11 +56,10 @@ export default function MyLostAndFoundPage() {
   };
 
   useEffect(() => {
-    if (user) {
+    if (currentUserId) {
       loadUserItems();
     }
-  }, [user, activeTab]);
-
+  }, [currentUserId, activeTab]);
   useEffect(() => {
     if (successMessage) {
       const timer = setTimeout(() => setSuccessMessage(''), 3000);
@@ -90,8 +95,8 @@ export default function MyLostAndFoundPage() {
     navigate(`/items/${itemId}/edit`);
   };
 
-  const lostCount = items.filter((item) => item.type === 'lost').length;
-  const foundCount = items.filter((item) => item.type === 'found').length;
+  const lostCount = items.filter((item) => item.itemType === 'lost').length;
+  const foundCount = items.filter((item) => item.itemType === 'found').length;
   const totalCount = lostCount + foundCount;
 
   const tabLabel = activeTab === 'lost' ? 'Lost Items' : 'Found Items';

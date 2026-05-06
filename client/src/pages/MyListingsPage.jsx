@@ -10,6 +10,7 @@ import { useAuth } from '../hooks/useAuth';
 export default function MyListingsPage() {
   const { user, logout } = useAuth();
   const navigate = useNavigate();
+  const currentUserId = user?.id || user?._id;
 
   const [items, setItems] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -36,9 +37,14 @@ export default function MyListingsPage() {
     setError('');
 
     try {
+      if (!currentUserId) {
+        setItems([]);
+        return;
+      }
+
       const response = await getItems({
         itemType: 'sale',
-        reportedBy: user?._id,
+        reportedBy: currentUserId,
       });
       setItems(response.data.items || []);
     } catch (err) {
@@ -49,11 +55,10 @@ export default function MyListingsPage() {
   };
 
   useEffect(() => {
-    if (user) {
+    if (currentUserId) {
       loadUserListings();
     }
-  }, [user]);
-
+  }, [currentUserId]);
   useEffect(() => {
     if (successMessage) {
       const timer = setTimeout(() => setSuccessMessage(''), 3000);
