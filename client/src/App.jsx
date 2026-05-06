@@ -1,5 +1,6 @@
 import { Navigate, Route, Routes } from 'react-router-dom';
 import { AuthProvider } from './context/AuthContext';
+import { useAuth } from './hooks/useAuth';
 import ProtectedRoute from './components/routing/ProtectedRoute';
 import PublicOnlyRoute from './components/routing/PublicOnlyRoute';
 import LoginPage from './pages/LoginPage';
@@ -12,14 +13,18 @@ import CreateEntryPage from './pages/CreateEntryPage';
 import EditEntryPage from './pages/EditEntryPage';
 import ProfilePage from './pages/ProfilePage';
 import InboxPage from './pages/InboxPage';
+import NotificationsPage from './pages/NotificationsPage';
 import MarketplacePage from './pages/MarketplacePage';
 import ItemDetailPage from './pages/ItemDetailPage';
 import MyListingsPage from './pages/MyListingsPage';
 import MyLostAndFoundPage from './pages/MyLostAndFoundPage';
+import { NotificationProvider } from './context/NotificationContext';
 
-function App() {
+function AppRoutes() {
+  const { user } = useAuth();
+
   return (
-    <AuthProvider>
+    <NotificationProvider userId={user?._id}>
       <Routes>
         <Route element={<PublicOnlyRoute />}>
           <Route path="/login" element={<LoginPage />} />
@@ -35,6 +40,7 @@ function App() {
           <Route path="/profile" element={<ProfilePage />} />
           <Route path="/create-entry" element={<CreateEntryPage />} />
           <Route path="/inbox" element={<InboxPage />} />
+          <Route path="/notifications" element={<NotificationsPage />} />
           <Route path="/my-listings" element={<MyListingsPage />} />
           <Route path="/my-lost-and-found" element={<MyLostAndFoundPage />} />
           <Route path="/items/:itemId" element={<ItemDetailPage />} />
@@ -44,6 +50,14 @@ function App() {
         <Route path="/dashboard" element={<Navigate to="/" replace />} />
         <Route path="*" element={<Navigate to="/" replace />} />
       </Routes>
+    </NotificationProvider>
+  );
+}
+
+function App() {
+  return (
+    <AuthProvider>
+      <AppRoutes />
     </AuthProvider>
   );
 }

@@ -97,4 +97,13 @@ export const reportLostItem = (formData) =>
     }),
   );
 
+export const getNotifications = (page = 1) =>
+  unwrap(api.get('/notifications', { params: { page } }));
+export const getUnreadNotificationCount = () =>
+  unwrap(api.get('/notifications/unread-count'));
+export const markNotificationAsRead = (notificationId) =>
+  unwrap(api.put(`/notifications/${notificationId}/read`));
+export const markAllNotificationsAsRead = () =>
+  unwrap(api.put('/notifications/mark-all-as-read'));
+
 export default api;

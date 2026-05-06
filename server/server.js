@@ -9,6 +9,7 @@ const { Server } = require('socket.io');
 const connectDB = require('./config/db');
 const authRoutes = require('./routes/authRoutes');
 const messageRoutes = require('./routes/messageRoutes');
+const notificationRoutes = require('./routes/notificationRoutes');
 const { setIO } = require('./utils/socket');
 const itemRoutes = require('./routes/itemRoutes');
 
@@ -33,6 +34,7 @@ app.get('/api/health', (req, res) => {
 
 app.use('/api/auth', authRoutes);
 app.use('/api/messages', messageRoutes);
+app.use('/api/notifications', notificationRoutes);
 app.use('/api/items', itemRoutes);
 
 app.get('/', (req, res) => {

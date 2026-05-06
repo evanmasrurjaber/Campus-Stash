@@ -83,6 +83,8 @@ const sendMessage = async (req, res) => {
       postType,
     });
 
+    await notification.populate('actor', 'fullName avatar');
+
     let postTitle = '';
     let postImageUrl = '';
 
@@ -102,6 +104,10 @@ const sendMessage = async (req, res) => {
 
     const io = getIO();
     if (io) {
+      io.to(String(recipientId)).emit('notification_received', {
+        notification,
+        actor: req.user,
+      });
       io.to(String(recipientId)).emit('message_received', {
         message: messagePayload,
         notification,

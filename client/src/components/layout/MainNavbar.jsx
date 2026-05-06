@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState } from 'react';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
+import { useNotifications } from '../../context/NotificationContext';
 
 const getInitials = (fullName) => {
   const normalizedName = String(fullName || '').trim();
@@ -58,6 +59,7 @@ export default function MainNavbar({ user, onLogout }) {
   const searchParams = new URLSearchParams(location.search);
   const currentMarketplaceState = searchParams.get('state') || 'listings';
   const isMarketplacePath = location.pathname.startsWith('/marketplace');
+  const { unreadCount } = useNotifications();
 
   useEffect(() => {
     const handleOutsideClick = (event) => {
@@ -148,10 +150,20 @@ export default function MainNavbar({ user, onLogout }) {
 
           <button
             type="button"
-            className="inline-flex h-10 w-10 items-center justify-center rounded-full text-on-surface-variant transition-colors hover:bg-surface-container-high hover:text-primary"
+            className={`relative inline-flex h-10 w-10 items-center justify-center rounded-full transition-colors ${
+              location.pathname === '/notifications'
+                ? 'bg-primary-container/10 text-primary'
+                : 'text-on-surface-variant hover:bg-surface-container-high hover:text-primary'
+            }`}
             aria-label="Notifications"
+            onClick={() => navigate('/notifications')}
           >
             <span className="material-symbols-outlined">notifications</span>
+            {unreadCount > 0 && (
+              <span className="absolute right-1 top-1 inline-flex h-5 w-5 items-center justify-center rounded-full bg-error text-[10px] font-bold text-on-error">
+                {unreadCount > 99 ? '99+' : unreadCount}
+              </span>
+            )}
           </button>
 
           <div className="relative" ref={menuRef}>
