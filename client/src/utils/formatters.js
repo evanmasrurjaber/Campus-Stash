@@ -21,7 +21,7 @@ export const formatPrice = (value) => {
     return '--';
   }
 
-  return `$${Number(value).toFixed(Number.isInteger(Number(value)) ? 0 : 2)}`;
+    return `৳${Number(value).toFixed(Number.isInteger(Number(value)) ? 0 : 2)}`;
 };
 
 export const getStatusLabel = (variant) => {

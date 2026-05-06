@@ -130,7 +130,7 @@ export default function MyListingsPage() {
                   Total Value
                 </p>
                 <p className="headline-text text-2xl md:text-3xl font-bold text-tertiary-container">
-                  ${totalValue}
+                  ৳{totalValue}
                 </p>
               </div>
             </div>

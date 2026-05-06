@@ -266,6 +266,14 @@ export default function ProfilePage() {
     navigate('/login', { replace: true });
   };
 
+  const handleGoListings = () => {
+    navigate('/my-listings');
+  };
+
+  const handleGoLostAndFound = () => {
+    navigate('/my-lost-and-found');
+  };
+
   const updateDraftField = (field, value) => {
     setDraft((previousDraft) => ({ ...previousDraft, [field]: value }));
   };
@@ -612,10 +620,18 @@ export default function ProfilePage() {
                 >
                   {isEditing ? 'Cancel Edit' : 'Edit Profile'}
                 </button>
-                <button type="button" className="rounded-lg border border-outline-variant px-4 py-2 text-sm font-semibold text-on-surface">
+                <button
+                  type="button"
+                  className="rounded-lg border border-outline-variant px-4 py-2 text-sm font-semibold text-on-surface"
+                  onClick={handleGoListings}
+                >
                   My Listings
                 </button>
-                <button type="button" className="rounded-lg border border-outline-variant px-4 py-2 text-sm font-semibold text-on-surface">
+                <button
+                  type="button"
+                  className="rounded-lg border border-outline-variant px-4 py-2 text-sm font-semibold text-on-surface"
+                  onClick={handleGoLostAndFound}
+                >
                   My Lost &amp; Found
                 </button>
               </div>
