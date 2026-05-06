@@ -3,7 +3,6 @@ import { useNavigate } from 'react-router-dom';
 import MainFooter from '../components/layout/MainFooter';
 import MainNavbar from '../components/layout/MainNavbar';
 import ChatThreadPanel from '../components/messages/ChatThreadPanel';
-import ConfirmDialog from '../components/common/ConfirmDialog';
 import { useAuth } from '../hooks/useAuth';
 import {
   getApiErrorMessage,
@@ -634,17 +633,6 @@ export default function InboxPage() {
           </div>
         </section>
       </main>
-
-      <ConfirmDialog
-        open={deleteConfirmOpen}
-        title="Delete conversation?"
-        message={`Delete the conversation with ${selectedConversation?.otherUser?.fullName || 'this user'}? This cannot be undone.`}
-        confirmLabel={deletingConversation ? 'Deleting...' : 'Delete'}
-        cancelLabel="Cancel"
-        destructive
-        onConfirm={confirmDeleteConversation}
-        onCancel={cancelDeleteConversation}
-      />
 
       <MainFooter />
     </div>
