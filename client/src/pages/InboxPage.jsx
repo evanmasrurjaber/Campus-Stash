@@ -135,6 +135,8 @@ const formatPostTypePrefix = (postType) => {
 
 const getPrimaryImageUrl = (item) => item?.images?.[0]?.url || '';
 
+const isNotFoundError = (error) => error?.response?.status === 404;
+
 const hydrateConversationsWithItems = async (conversationList) => {
   const uniquePostIds = Array.from(new Set(conversationList.map((conversation) => conversation.postId).filter(Boolean)));
 
@@ -143,6 +145,7 @@ const hydrateConversationsWithItems = async (conversationList) => {
   }
 
   const itemMap = new Map();
+  const missingPostIds = new Set();
 
   await Promise.all(
     uniquePostIds.map(async (postId) => {
@@ -154,7 +157,9 @@ const hydrateConversationsWithItems = async (conversationList) => {
           itemMap.set(postId, item);
         }
       } catch (error) {
-        // Ignore missing/unauthorized items; keep conversation data intact.
+        if (isNotFoundError(error)) {
+          missingPostIds.add(postId);
+        }
       }
     }),
   );
@@ -162,12 +167,20 @@ const hydrateConversationsWithItems = async (conversationList) => {
   return conversationList.map((conversation) => {
     const item = itemMap.get(conversation.postId);
 
+    if (!item && missingPostIds.has(conversation.postId)) {
+      return {
+        ...conversation,
+        isItemDeleted: true,
+      };
+    }
+
     if (!item) {
       return conversation;
     }
 
     return {
       ...conversation,
+      isItemDeleted: false,
       postTitle: item.title || conversation.postTitle,
       postImageUrl: getPrimaryImageUrl(item) || conversation.postImageUrl,
     };
@@ -180,6 +193,7 @@ function ConversationRow({ conversation, active, onClick }) {
   const postTitle = conversation?.postTitle?.trim() || formatPostTypeLabel(conversation.postType);
   const postPrefix = formatPostTypePrefix(conversation.postType);
   const postImageUrl = conversation?.postImageUrl || '';
+  const isItemDeleted = Boolean(conversation?.isItemDeleted);
   const initials = name
     .split(/\s+/)
     .filter(Boolean)
@@ -211,6 +225,12 @@ function ConversationRow({ conversation, active, onClick }) {
             <p className="truncate text-sm font-bold text-on-surface">{name}</p>
             <span className="text-[10px] font-semibold text-outline">{formatRelativeTime(conversation.latestAt)}</span>
           </div>
+
+          {isItemDeleted ? (
+            <span className="mt-1 inline-flex rounded-full bg-error/10 px-2 py-0.5 text-[10px] font-semibold uppercase tracking-widest text-error">
+              Item deleted
+            </span>
+          ) : null}
 
           <p className="mt-1 truncate text-xs font-bold text-primary">
             {postPrefix}: {postTitle}
@@ -371,13 +391,29 @@ export default function InboxPage() {
 
             return {
               ...conversation,
+              isItemDeleted: false,
               postTitle: item.title || conversation.postTitle,
               postImageUrl: getPrimaryImageUrl(item) || conversation.postImageUrl,
             };
           }),
         );
       } catch (error) {
-        // Ignore hydration errors and keep the conversation visible.
+        if (!isNotFoundError(error)) {
+          return;
+        }
+
+        setConversations((currentConversations) =>
+          currentConversations.map((conversation) => {
+            if (conversation.key !== conversationKey) {
+              return conversation;
+            }
+
+            return {
+              ...conversation,
+              isItemDeleted: true,
+            };
+          }),
+        );
       }
     };
 

@@ -139,6 +139,7 @@ export default function ChatThreadPanel({
   const postTypeLabel = formatPostTypeLabel(conversation.postType);
   const postTitle = conversation?.postTitle?.trim() || postTypeLabel;
   const postImageUrl = conversation?.postImageUrl || '';
+  const isItemDeleted = Boolean(conversation?.isItemDeleted);
 
   return (
     <section className="flex h-full max-h-[650px] min-h-[520px] flex-col overflow-hidden rounded-2xl border border-outline-variant/40 bg-surface-container-lowest">
@@ -194,6 +195,12 @@ export default function ChatThreadPanel({
           </span>
         </div>
       </header>
+
+      {isItemDeleted ? (
+        <div className="border-b border-error/20 bg-error/10 px-4 py-2 text-xs font-semibold uppercase tracking-widest text-error md:px-5">
+          Item deleted
+        </div>
+      ) : null}
 
       <div className="border-b border-outline-variant/10 bg-tertiary-fixed/10 px-4 py-3 md:px-5">
         <div className="flex items-start gap-2.5">
