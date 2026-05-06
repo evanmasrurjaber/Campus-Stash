@@ -12,7 +12,6 @@ import {
   getThreadWithUser,
   deleteConversation,
   sendMessage,
-  deleteConversation,
 } from '../services/api';
 import { connect as connectSocket } from '../utils/socket';
 
@@ -265,7 +264,6 @@ export default function InboxPage() {
   const [threadLoading, setThreadLoading] = useState(false);
   const [threadError, setThreadError] = useState('');
   const [sendingMessage, setSendingMessage] = useState(false);
-  const [deletingConversation, setDeletingConversation] = useState(false);
   const [deletingConversation, setDeletingConversation] = useState(false);
   const [conversations, setConversations] = useState([]);
   const [selectedConversationKey, setSelectedConversationKey] = useState('');
