@@ -1,4 +1,4 @@
-import { useMemo, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 
 const toIdString = (value) => {
   if (!value) {
@@ -102,6 +102,7 @@ export default function ChatThreadPanel({
   deleteDisabled = false,
 }) {
   const [draftMessage, setDraftMessage] = useState('');
+  const threadContainerRef = useRef(null);
 
   const sortedMessages = useMemo(() => {
     const clonedMessages = Array.isArray(messages) ? [...messages] : [];
@@ -109,6 +110,20 @@ export default function ChatThreadPanel({
   }, [messages]);
 
   const canSend = Boolean(draftMessage.trim()) && !sendPending && !loading && Boolean(conversation);
+
+  useEffect(() => {
+    if (loading) {
+      return;
+    }
+
+    const container = threadContainerRef.current;
+
+    if (!container) {
+      return;
+    }
+
+    container.scrollTop = container.scrollHeight;
+  }, [conversation?.key, loading, sortedMessages.length]);
 
   const handleSubmit = (event) => {
     event.preventDefault();
@@ -213,7 +228,10 @@ export default function ChatThreadPanel({
         </div>
       </div>
 
-      <div className="custom-scrollbar flex-1 space-y-5 overflow-y-auto bg-[radial-gradient(circle_at_top_right,_var(--tw-gradient-stops))] from-surface-container-low/60 via-transparent to-transparent p-4 md:p-6">
+      <div
+        ref={threadContainerRef}
+        className="custom-scrollbar flex-1 space-y-5 overflow-y-auto bg-[radial-gradient(circle_at_top_right,_var(--tw-gradient-stops))] from-surface-container-low/60 via-transparent to-transparent p-4 md:p-6"
+      >
         {loading ? (
           <div className="flex h-full items-center justify-center py-10">
             <span className="text-sm font-semibold text-on-surface-variant">Loading conversation...</span>
