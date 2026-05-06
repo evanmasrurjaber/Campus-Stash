@@ -19,7 +19,7 @@ const formatPrice = (value) => {
     return '--';
   }
 
-  return `$${Number(value).toFixed(Number.isInteger(Number(value)) ? 0 : 2)}`;
+  return `৳${Number(value).toFixed(Number.isInteger(Number(value)) ? 0 : 2)}`;
 };
 
 export default function MarketplaceCard({ item, variant = 'sale' }) {

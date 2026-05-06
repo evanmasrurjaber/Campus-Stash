@@ -602,7 +602,7 @@ export default function EditEntryPage() {
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                       <div className="space-y-2">
                         <label className="text-xs font-bold uppercase tracking-widest text-primary/70" htmlFor="price">
-                          Price ($)
+                          Price (৳)
                         </label>
                         <input
                           id="price"

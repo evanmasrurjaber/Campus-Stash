@@ -530,7 +530,7 @@ export default function CreateEntryPage() {
                         <>
                           <div className="space-y-2">
                             <label className="text-xs font-bold uppercase tracking-widest text-primary/70" htmlFor="price">
-                              Price ($)
+                              Price (৳)
                             </label>
                             <input
                               id="price"
@@ -715,7 +715,7 @@ export default function CreateEntryPage() {
                 <div className="p-6 flex flex-col gap-3">
                   <div className="flex justify-between items-start gap-4">
                     <h3 className="font-headline font-bold text-xl text-primary leading-tight truncate">{form.title || 'Item Title'}</h3>
-                    <span className="font-headline font-bold text-xl text-on-surface">{itemType === 'sale' ? `$${form.price || '0'}` : '$0'}</span>
+                    <span className="font-headline font-bold text-xl text-on-surface">{itemType === 'sale' ? `৳${form.price || '0'}` : '৳0'}</span>
                   </div>
                   <div className="flex items-center gap-2 text-on-surface-variant text-sm">
                     <span className="material-symbols-outlined text-sm">location_on</span>

@@ -81,7 +81,7 @@ export default function MarketplaceFilters({
                 value={filters.minPrice}
                 onChange={(event) => onFilterChange('minPrice', event.target.value)}
                 className="rounded-xl border-none bg-surface-container-low px-3 py-2 text-sm focus:ring-2 focus:ring-primary/20"
-                placeholder="$ Min"
+                placeholder="৳ Min"
                 type="number"
                 min="0"
               />
@@ -89,7 +89,7 @@ export default function MarketplaceFilters({
                 value={filters.maxPrice}
                 onChange={(event) => onFilterChange('maxPrice', event.target.value)}
                 className="rounded-xl border-none bg-surface-container-low px-3 py-2 text-sm focus:ring-2 focus:ring-primary/20"
-                placeholder="$ Max"
+                placeholder="৳ Max"
                 type="number"
                 min="0"
               />

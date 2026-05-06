@@ -36,7 +36,7 @@ function formatPrice(item) {
     return 'Campus item';
   }
 
-  return `$${Number(item.price).toFixed(Number.isInteger(Number(item.price)) ? 0 : 2)}`;
+  return `৳${Number(item.price).toFixed(Number.isInteger(Number(item.price)) ? 0 : 2)}`;
 }
 
 function getListingMeta(item) {
