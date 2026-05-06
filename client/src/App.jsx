@@ -15,6 +15,7 @@ import ProfilePage from './pages/ProfilePage';
 import InboxPage from './pages/InboxPage';
 import NotificationsPage from './pages/NotificationsPage';
 import MarketplacePage from './pages/MarketplacePage';
+import BookmarkPage from './pages/BookmarkPage';
 import ItemDetailPage from './pages/ItemDetailPage';
 import MyListingsPage from './pages/MyListingsPage';
 import MyLostAndFoundPage from './pages/MyLostAndFoundPage';
@@ -41,6 +42,7 @@ function AppRoutes() {
           <Route path="/create-entry" element={<CreateEntryPage />} />
           <Route path="/inbox" element={<InboxPage />} />
           <Route path="/notifications" element={<NotificationsPage />} />
+          <Route path="/bookmarks" element={<BookmarkPage />} />
           <Route path="/my-listings" element={<MyListingsPage />} />
           <Route path="/my-lost-and-found" element={<MyLostAndFoundPage />} />
           <Route path="/items/:itemId" element={<ItemDetailPage />} />

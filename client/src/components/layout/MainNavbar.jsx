@@ -129,10 +129,15 @@ export default function MainNavbar({ user, onLogout }) {
         <div className="flex items-center gap-1 md:gap-2">
           <button
             type="button"
-            className="inline-flex h-10 w-10 items-center justify-center rounded-full text-on-surface-variant transition-colors hover:bg-surface-container-high hover:text-primary"
-            aria-label="Cart"
+            className={`inline-flex h-10 w-10 items-center justify-center rounded-full transition-colors ${
+              location.pathname === '/bookmarks'
+                ? 'bg-primary-container/10 text-primary'
+                : 'text-on-surface-variant hover:bg-surface-container-high hover:text-primary'
+            }`}
+            aria-label="Bookmarks"
+            onClick={() => navigate('/bookmarks')}
           >
-            <span className="material-symbols-outlined">shopping_cart</span>
+            <span className="material-symbols-outlined">bookmark</span>
           </button>
 
           <button

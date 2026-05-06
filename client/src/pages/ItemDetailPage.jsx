@@ -12,6 +12,7 @@ import {
   getThreadWithUser,
   sendMessage,
 } from '../services/api';
+import { isItemBookmarked, toggleItemBookmark } from '../utils/bookmarks';
 
 const toIdString = (value) => {
   if (!value) {
@@ -111,6 +112,7 @@ export default function ItemDetailPage() {
   const [threadLoading, setThreadLoading] = useState(false);
   const [threadError, setThreadError] = useState('');
   const [sendingMessage, setSendingMessage] = useState(false);
+  const [isBookmarked, setIsBookmarked] = useState(false);
 
   const isOwner = useMemo(
     () => toIdString(item?.reportedBy) === toIdString(user?.id || user?._id),
@@ -172,6 +174,12 @@ export default function ItemDetailPage() {
 
     loadItem();
   }, [itemId]);
+
+  useEffect(() => {
+    if (item?._id) {
+      setIsBookmarked(isItemBookmarked(item._id));
+    }
+  }, [item]);
 
   useEffect(() => {
     const loadRelated = async () => {
@@ -418,9 +426,16 @@ export default function ItemDetailPage() {
                 {item.itemType === 'sale' ? (
                   <button
                     type="button"
-                    className="w-full rounded-xl border border-outline-variant/40 bg-surface-container-low px-5 py-3 text-sm font-bold text-primary"
+                    onClick={() => {
+                      if (!item?._id) {
+                        return;
+                      }
+                      const nextSaved = toggleItemBookmark(item._id);
+                      setIsBookmarked(nextSaved);
+                    }}
+                    className="w-full rounded-xl border border-outline-variant/40 bg-surface-container-low px-5 py-3 text-sm font-bold text-primary hover:bg-surface-container-high transition-colors"
                   >
-                    Save for later
+                    {isBookmarked ? 'Saved' : 'Save for later'}
                   </button>
                 ) : null}
                 {isOwner ? (
