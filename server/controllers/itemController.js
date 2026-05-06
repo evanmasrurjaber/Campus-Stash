@@ -205,6 +205,7 @@ const getItems = async (req, res) => {
       itemCondition,
       minPrice,
       maxPrice,
+      reportedBy,
       sort = 'recent',
       page = '1',
       limit = '12',
@@ -215,6 +216,17 @@ const getItems = async (req, res) => {
 
     if (activeType && ['lost', 'found', 'sale'].includes(activeType)) {
       query.itemType = activeType;
+    }
+
+    if (reportedBy) {
+      if (!mongoose.Types.ObjectId.isValid(reportedBy)) {
+        return res.status(400).json({
+          success: false,
+          message: 'reportedBy must be a valid id',
+        });
+      }
+
+      query.reportedBy = reportedBy;
     }
 
     if (category) {

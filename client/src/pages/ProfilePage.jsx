@@ -3,7 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import MainFooter from '../components/layout/MainFooter';
 import MainNavbar from '../components/layout/MainNavbar';
 import { useAuth } from '../hooks/useAuth';
-import { getApiErrorMessage, updateProfile } from '../services/api';
+import { getApiErrorMessage, getInbox, getItems, updateProfile } from '../services/api';
 
 const AVATAR_REMOVE_ENABLED = true;
 
@@ -26,6 +26,8 @@ const getInitials = (fullName) => {
 };
 
 const getAvatarUrl = (profile) => profile?.avatar?.url || '';
+
+const formatCount = (value) => String(Number.isFinite(value) ? value : 0).padStart(2, '0');
 
 const createDraftFromProfile = (profile) => ({
   fullName: getSafeText(profile?.fullName),
@@ -132,6 +134,9 @@ export default function ProfilePage() {
   const [saveError, setSaveError] = useState('');
   const [saveSuccess, setSaveSuccess] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [activityStats, setActivityStats] = useState({ listings: 0, lostFound: 0, inbox: 0 });
+  const [activityLoading, setActivityLoading] = useState(false);
+  const [activityError, setActivityError] = useState('');
 
   const isSaveDisabled = isSubmitting || loadingProfile;
 
@@ -171,6 +176,55 @@ export default function ProfilePage() {
       setDraft(createDraftFromProfile(user));
     }
   }, [user, isEditing]);
+
+  useEffect(() => {
+    if (!profile?.id) {
+      return undefined;
+    }
+
+    let active = true;
+
+    const fetchActivityStats = async () => {
+      setActivityLoading(true);
+      setActivityError('');
+
+      try {
+        const [saleResponse, lostResponse, foundResponse, inboxResponse] = await Promise.all([
+          getItems({ itemType: 'sale', reportedBy: profile.id, page: 1, limit: 1 }),
+          getItems({ itemType: 'lost', reportedBy: profile.id, page: 1, limit: 1 }),
+          getItems({ itemType: 'found', reportedBy: profile.id, page: 1, limit: 1 }),
+          getInbox(1),
+        ]);
+
+        const listings = saleResponse?.data?.pagination?.totalItems || 0;
+        const lostCount = lostResponse?.data?.pagination?.totalItems || 0;
+        const foundCount = foundResponse?.data?.pagination?.totalItems || 0;
+        const inboxCount = inboxResponse?.data?.pagination?.totalCount || 0;
+
+        if (active) {
+          setActivityStats({
+            listings,
+            lostFound: lostCount + foundCount,
+            inbox: inboxCount,
+          });
+        }
+      } catch (requestError) {
+        if (active) {
+          setActivityError(getApiErrorMessage(requestError, 'Could not load activity stats'));
+        }
+      } finally {
+        if (active) {
+          setActivityLoading(false);
+        }
+      }
+    };
+
+    fetchActivityStats();
+
+    return () => {
+      active = false;
+    };
+  }, [profile?.id]);
 
   useEffect(() => {
     if (!avatarFile) {
@@ -518,20 +572,32 @@ export default function ProfilePage() {
           <aside className="space-y-6">
             <div className="rounded-2xl border border-outline-variant/40 bg-surface-container-lowest p-6">
               <h2 className="font-headline text-xl font-bold text-primary">My Activity</h2>
-              <p className="mt-2 text-sm text-on-surface-variant">Static preview cards for now.</p>
+              <p className="mt-2 text-sm text-on-surface-variant">
+                {activityLoading
+                  ? 'Refreshing your activity snapshots...'
+                  : 'Live counts from your listings, posts, and inbox.'}
+              </p>
+
+              {activityError ? <p className="mt-3 text-sm font-semibold text-error">{activityError}</p> : null}
 
               <div className="mt-5 grid gap-3">
                 <div className="rounded-xl bg-surface-container-low p-4">
                   <p className="text-xs uppercase tracking-widest text-on-surface-variant">Marketplace Listings</p>
-                  <p className="mt-1 text-2xl font-bold text-primary">07</p>
+                  <p className="mt-1 text-2xl font-bold text-primary">
+                    {activityLoading ? '--' : formatCount(activityStats.listings)}
+                  </p>
                 </div>
                 <div className="rounded-xl bg-surface-container-low p-4">
                   <p className="text-xs uppercase tracking-widest text-on-surface-variant">Lost &amp; Found Posts</p>
-                  <p className="mt-1 text-2xl font-bold text-primary">03</p>
+                  <p className="mt-1 text-2xl font-bold text-primary">
+                    {activityLoading ? '--' : formatCount(activityStats.lostFound)}
+                  </p>
                 </div>
                 <div className="rounded-xl bg-surface-container-low p-4">
                   <p className="text-xs uppercase tracking-widest text-on-surface-variant">Inbox Messages</p>
-                  <p className="mt-1 text-2xl font-bold text-primary">12</p>
+                  <p className="mt-1 text-2xl font-bold text-primary">
+                    {activityLoading ? '--' : formatCount(activityStats.inbox)}
+                  </p>
                 </div>
               </div>
             </div>
