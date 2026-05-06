@@ -3,12 +3,14 @@ import { useNavigate } from 'react-router-dom';
 import MainFooter from '../components/layout/MainFooter';
 import MainNavbar from '../components/layout/MainNavbar';
 import ChatThreadPanel from '../components/messages/ChatThreadPanel';
+import ConfirmDialog from '../components/common/ConfirmDialog';
 import { useAuth } from '../hooks/useAuth';
 import {
   getApiErrorMessage,
   getInbox,
   getThreadWithUser,
   sendMessage,
+  deleteConversation,
 } from '../services/api';
 
 const toIdString = (value) => {
@@ -151,9 +153,11 @@ export default function InboxPage() {
   const [threadLoading, setThreadLoading] = useState(false);
   const [threadError, setThreadError] = useState('');
   const [sendingMessage, setSendingMessage] = useState(false);
+  const [deletingConversation, setDeletingConversation] = useState(false);
   const [conversations, setConversations] = useState([]);
   const [selectedConversationKey, setSelectedConversationKey] = useState('');
   const [threadMessages, setThreadMessages] = useState([]);
+  const [deleteConfirmOpen, setDeleteConfirmOpen] = useState(false);
 
   const selectedConversation = useMemo(
     () => conversations.find((conversation) => conversation.key === selectedConversationKey) || null,
@@ -267,6 +271,38 @@ export default function InboxPage() {
     }
   };
 
+  const handleDeleteConversation = () => {
+    setDeleteConfirmOpen(true);
+  };
+
+  const confirmDeleteConversation = async () => {
+    if (!selectedConversation) {
+      return;
+    }
+
+    setDeletingConversation(true);
+    setThreadError('');
+    setDeleteConfirmOpen(false);
+
+    try {
+      await deleteConversation(
+        selectedConversation.otherUserId,
+        selectedConversation.postId,
+        selectedConversation.postType,
+      );
+
+      await fetchInboxData('');
+    } catch (requestError) {
+      setThreadError(getApiErrorMessage(requestError, 'Could not delete this conversation'));
+    } finally {
+      setDeletingConversation(false);
+    }
+  };
+
+  const cancelDeleteConversation = () => {
+    setDeleteConfirmOpen(false);
+  };
+
   const showChatPanelOnMobile = Boolean(selectedConversation);
 
   return (
@@ -341,11 +377,24 @@ export default function InboxPage() {
               sendPending={sendingMessage}
               error={threadError}
               onSendMessage={handleSendMessage}
+              onDeleteConversation={handleDeleteConversation}
+              deleteDisabled={deletingConversation}
               onBack={showChatPanelOnMobile ? () => setSelectedConversationKey('') : undefined}
             />
           </div>
         </section>
       </main>
+
+      <ConfirmDialog
+        open={deleteConfirmOpen}
+        title="Delete conversation?"
+        message={`Delete the conversation with ${selectedConversation?.otherUser?.fullName || 'this user'}? This cannot be undone.`}
+        confirmLabel={deletingConversation ? 'Deleting...' : 'Delete'}
+        cancelLabel="Cancel"
+        destructive
+        onConfirm={confirmDeleteConversation}
+        onCancel={cancelDeleteConversation}
+      />
 
       <MainFooter />
     </div>
