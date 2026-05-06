@@ -1,5 +1,5 @@
 const CATEGORY_OPTIONS = ['Books', 'Electronics', 'Furniture', 'Lab Equipment', 'Apparel', 'Dorm Life'];
-const CONDITION_OPTIONS = ['New', 'Good', 'Used', 'Fair'];
+const CONDITION_OPTIONS = ['New', 'Good', 'Fair', 'Poor'];
 
 export default function MarketplaceFilters({
   state,

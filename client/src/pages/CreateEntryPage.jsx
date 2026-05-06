@@ -19,7 +19,7 @@ const CATEGORIES = [
 
 const FOUND_STATUS_OPTIONS = ['With me', 'Turned in to Lost & Found'];
 
-const ITEM_CONDITIONS = ['Like New', 'Good', 'Fair', 'Poor'];
+const ITEM_CONDITIONS = ['New', 'Good', 'Fair', 'Poor'];
 
 const createInitialForm = () => ({
   itemType: '',

@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
 import MainNavbar from '../components/layout/MainNavbar';
 import MainFooter from '../components/layout/MainFooter';
@@ -48,6 +48,7 @@ export default function MarketplacePage() {
   const [pagination, setPagination] = useState({ page: 1, totalPages: 1, totalItems: 0 });
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
+  const requestIdRef = useRef(0);
 
   const onLogout = () => {
     logout();
@@ -95,6 +96,8 @@ export default function MarketplacePage() {
 
   useEffect(() => {
     const loadItems = async () => {
+      const requestId = requestIdRef.current + 1;
+      requestIdRef.current = requestId;
       setLoading(true);
       setError('');
 
@@ -111,6 +114,10 @@ export default function MarketplacePage() {
           limit: 12,
         });
 
+        if (requestId !== requestIdRef.current) {
+          return;
+        }
+
         setItems(response.data.items);
         setPagination((prev) => ({
           ...prev,
@@ -118,9 +125,14 @@ export default function MarketplacePage() {
           totalItems: response.data.pagination.totalItems,
         }));
       } catch (requestError) {
+        if (requestId !== requestIdRef.current) {
+          return;
+        }
         setError(getApiErrorMessage(requestError, 'Unable to load items'));
       } finally {
-        setLoading(false);
+        if (requestId === requestIdRef.current) {
+          setLoading(false);
+        }
       }
     };
 
