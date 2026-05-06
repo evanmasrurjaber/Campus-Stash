@@ -247,11 +247,30 @@ export default function InboxPage() {
   const [conversations, setConversations] = useState([]);
   const [selectedConversationKey, setSelectedConversationKey] = useState('');
   const [threadMessages, setThreadMessages] = useState([]);
+  const [searchTerm, setSearchTerm] = useState('');
 
   const selectedConversation = useMemo(
     () => conversations.find((conversation) => conversation.key === selectedConversationKey) || null,
     [conversations, selectedConversationKey],
   );
+
+  const filteredConversations = useMemo(() => {
+    const normalizedTerm = searchTerm.trim().toLowerCase();
+
+    if (!normalizedTerm) {
+      return conversations;
+    }
+
+    return conversations.filter((conversation) => {
+      const name = conversation?.otherUser?.fullName || '';
+      const postTitle = conversation?.postTitle || '';
+      const latestMessage = conversation?.latestMessage || '';
+
+      return [name, postTitle, latestMessage].some((value) =>
+        String(value).toLowerCase().includes(normalizedTerm),
+      );
+    });
+  }, [conversations, searchTerm]);
 
   const fetchThread = useCallback(async (conversation) => {
     if (!conversation) {
@@ -297,15 +316,19 @@ export default function InboxPage() {
 
       setConversations(hydratedConversations);
 
-      const hasPreservedSelection = hydratedConversations.some((item) => item.key === preservedSelectionKey);
-      const nextSelectedKey = hasPreservedSelection
-        ? preservedSelectionKey
-        : hydratedConversations[0]?.key || '';
+      const hasPreservedSelection = Boolean(preservedSelectionKey)
+        && hydratedConversations.some((item) => item.key === preservedSelectionKey);
+      const nextSelectedKey = hasPreservedSelection ? preservedSelectionKey : '';
 
       setSelectedConversationKey(nextSelectedKey);
 
-      const nextConversation = hydratedConversations.find((item) => item.key === nextSelectedKey) || null;
-      await fetchThread(nextConversation);
+      if (nextSelectedKey) {
+        const nextConversation = hydratedConversations.find((item) => item.key === nextSelectedKey) || null;
+        await fetchThread(nextConversation);
+      } else {
+        setThreadMessages([]);
+        setThreadError('');
+      }
     } catch (requestError) {
       setInboxError(getApiErrorMessage(requestError, 'Could not load your inbox'));
       setConversations([]);
@@ -500,24 +523,25 @@ export default function InboxPage() {
           </p>
         </div>
 
-        <section className="grid min-h-[650px] grid-cols-1 overflow-hidden rounded-2xl border border-outline-variant/40 bg-surface-container-low lg:grid-cols-12">
+        <section className="relative z-0 grid h-[650px] grid-cols-1 overflow-hidden rounded-2xl border border-outline-variant/40 bg-surface-container-low lg:grid-cols-12">
           <aside
-            className={`flex flex-col border-outline-variant/30 bg-surface-container-low lg:col-span-4 lg:border-r ${
+            className={`relative z-10 flex flex-col border-outline-variant/30 bg-surface-container-low pointer-events-auto lg:col-span-4 lg:border-r ${
               showChatPanelOnMobile ? 'hidden lg:flex' : 'flex'
             }`}
           >
             <div className="border-b border-outline-variant/20 p-4">
-              <div className="relative">
-                <span className="material-symbols-outlined pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-sm text-outline">
-                  search
-                </span>
-                <input
-                  type="text"
-                  className="w-full rounded-lg border-none bg-surface-container-lowest py-2 pl-10 pr-3 text-sm ring-0"
-                  placeholder="Search chats..."
-                  disabled
-                  aria-label="Search chats"
-                />
+              <div className="rounded-2xl bg-transparent p-0">
+                <label className="flex items-center gap-2 rounded-xl bg-surface-container-low px-2.5 py-1.5">
+                  <span className="material-symbols-outlined text-[18px] text-outline">search</span>
+                  <input
+                    type="search"
+                    className="w-full border-none bg-transparent p-0 text-sm focus:ring-0"
+                    placeholder="Search chats..."
+                    value={searchTerm}
+                    onChange={(event) => setSearchTerm(event.target.value)}
+                    aria-label="Search chats"
+                  />
+                </label>
               </div>
             </div>
 
@@ -534,8 +558,14 @@ export default function InboxPage() {
                 </div>
               ) : null}
 
+              {!inboxLoading && conversations.length > 0 && filteredConversations.length === 0 ? (
+                <div className="px-4 py-8 text-sm text-on-surface-variant">
+                  No chats match "{searchTerm.trim()}".
+                </div>
+              ) : null}
+
               {!inboxLoading
-                ? conversations.map((conversation) => (
+                ? filteredConversations.map((conversation) => (
                     <ConversationRow
                       key={conversation.key}
                       conversation={conversation}
@@ -548,7 +578,7 @@ export default function InboxPage() {
           </aside>
 
           <div
-            className={`bg-surface-container-lowest lg:col-span-8 ${
+            className={`relative z-0 h-full bg-surface-container-lowest lg:col-span-8 ${
               showChatPanelOnMobile ? 'block' : 'hidden lg:block'
             }`}
           >

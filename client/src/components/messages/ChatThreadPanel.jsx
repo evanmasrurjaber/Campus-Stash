@@ -125,7 +125,7 @@ export default function ChatThreadPanel({
 
   if (!conversation) {
     return (
-      <section className="flex h-full min-h-[380px] flex-col items-center justify-center rounded-2xl border border-outline-variant/40 bg-surface-container-lowest p-8 text-center">
+      <section className="flex h-full max-h-[650px] min-h-[380px] flex-col items-center justify-center rounded-2xl border border-outline-variant/40 bg-surface-container-lowest p-8 text-center">
         <span className="material-symbols-outlined text-4xl text-primary/70">chat_bubble</span>
         <h2 className="mt-4 font-headline text-2xl font-extrabold text-primary">Select a Conversation</h2>
         <p className="mt-2 max-w-md text-sm text-on-surface-variant">
@@ -141,7 +141,7 @@ export default function ChatThreadPanel({
   const postImageUrl = conversation?.postImageUrl || '';
 
   return (
-    <section className="flex h-full min-h-[520px] flex-col overflow-hidden rounded-2xl border border-outline-variant/40 bg-surface-container-lowest">
+    <section className="flex h-full max-h-[650px] min-h-[520px] flex-col overflow-hidden rounded-2xl border border-outline-variant/40 bg-surface-container-lowest">
       <header className="flex items-center justify-between border-b border-outline-variant/20 bg-surface-container-low px-4 py-3 md:px-5">
         <div className="flex min-w-0 items-center gap-3">
           {onBack ? (

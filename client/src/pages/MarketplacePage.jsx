@@ -161,7 +161,7 @@ export default function MarketplacePage() {
               </p>
             </div>
 
-            <div className="w-full max-w-xl rounded-2xl bg-surface-container-lowest p-3 shadow-sm">
+            <div className="w-full max-w-xl rounded-2xl bg-transparent p-0">
               <label className="flex items-center gap-3 rounded-xl bg-surface-container-low px-4 py-3">
                 <span className="material-symbols-outlined text-outline">search</span>
                 <input
