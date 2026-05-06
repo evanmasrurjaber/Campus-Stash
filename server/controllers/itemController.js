@@ -205,6 +205,7 @@ const getItems = async (req, res) => {
       itemCondition,
       minPrice,
       maxPrice,
+      reportedBy,
       sort = 'recent',
       page = '1',
       limit = '12',
@@ -215,6 +216,10 @@ const getItems = async (req, res) => {
 
     if (activeType && ['lost', 'found', 'sale'].includes(activeType)) {
       query.itemType = activeType;
+    }
+
+    if (reportedBy) {
+      query.reportedBy = reportedBy;
     }
 
     if (category) {
@@ -539,9 +544,73 @@ const updateItem = async (req, res) => {
   }
 };
 
+const deleteItem = async (req, res) => {
+  try {
+    const { id } = req.params;
+
+    // Validate item id
+    if (!mongoose.Types.ObjectId.isValid(id)) {
+      return res.status(400).json({
+        success: false,
+        message: 'Invalid item id',
+      });
+    }
+
+    // Fetch item
+    const item = await Item.findById(id);
+    if (!item) {
+      return res.status(404).json({
+        success: false,
+        message: 'Item not found',
+      });
+    }
+
+    // Ownership check
+    if (item.reportedBy.toString() !== req.user._id.toString()) {
+      return res.status(403).json({
+        success: false,
+        message: 'You do not have permission to delete this item',
+      });
+    }
+
+    // Delete all images from Cloudinary
+    if (item.images && item.images.length > 0) {
+      for (const image of item.images) {
+        try {
+          if (image.public_id) {
+            await cloudinary.uploader.destroy(image.public_id);
+          }
+        } catch (cloudErr) {
+          console.error('Cloudinary delete error:', cloudErr);
+        }
+      }
+    }
+
+    // Delete item from database
+    await Item.findByIdAndDelete(id);
+
+    return res.status(200).json({
+      success: true,
+      message: 'Item deleted successfully',
+    });
+  } catch (error) {
+    console.error('Delete item error:', {
+      name: error.name,
+      message: error.message,
+      stack: error.stack,
+    });
+
+    return res.status(500).json({
+      success: false,
+      message: 'Server error while deleting item',
+    });
+  }
+};
+
 module.exports = {
   createItem,
   getItems,
   getItemById,
   updateItem,
+  deleteItem,
 };

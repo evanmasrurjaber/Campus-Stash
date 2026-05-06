@@ -1,6 +1,6 @@
 import { useMemo, useState, useEffect } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
-import { getApiErrorMessage, updateItem, getItemById } from '../services/api';
+import { getApiErrorMessage, updateItem, getItemById, deleteItem } from '../services/api';
 import { useAuth } from '../hooks/useAuth';
 import MainNavbar from '../components/layout/MainNavbar';
 import MainFooter from '../components/layout/MainFooter';
@@ -407,11 +407,13 @@ export default function EditEntryPage() {
     setIsSubmitting(true);
 
     try {
-      // TODO: Implement delete functionality when backend supports it
-      setError('Delete functionality coming soon');
-      setIsSubmitting(false);
+        await deleteItem(itemId);
+        setSuccessMessage('Post deleted successfully. Redirecting...');
+        setTimeout(() => {
+          navigate('/marketplace', { replace: true });
+        }, 1500);
     } catch (requestError) {
-      setError(getApiErrorMessage(requestError, 'Could not delete your listing'));
+        setError(getApiErrorMessage(requestError, 'Could not delete your post'));
       setIsSubmitting(false);
     }
   };

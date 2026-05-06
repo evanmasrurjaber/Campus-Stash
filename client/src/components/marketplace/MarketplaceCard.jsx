@@ -1,47 +1,14 @@
 import { useNavigate } from 'react-router-dom';
-
-const getSellerLabel = (user) => {
-  const name = String(user?.fullName || '').trim();
-  return name || 'Campus User';
-};
-
-const getInitials = (name) =>
-  String(name || '')
-    .trim()
-    .split(/\s+/)
-    .filter(Boolean)
-    .slice(0, 2)
-    .map((part) => part.charAt(0).toUpperCase())
-    .join('') || 'U';
-
-const formatPrice = (value) => {
-  if (value === null || value === undefined || value === '') {
-    return '--';
-  }
-
-  return `$${Number(value).toFixed(Number.isInteger(Number(value)) ? 0 : 2)}`;
-};
+import { getSellerLabel, getInitials, formatPrice, getStatusLabel, getDetailLabel, getCtaLabel } from '../../utils/formatters';
 
 export default function MarketplaceCard({ item, variant = 'sale' }) {
   const navigate = useNavigate();
   const sellerName = getSellerLabel(item.reportedBy);
   const category = item.category || 'General';
   const imageUrl = item.images?.[0]?.url;
-  const statusLabel =
-    variant === 'sale'
-      ? 'For Sale'
-      : variant === 'lost'
-        ? 'Lost Item'
-        : 'Found Item';
-
-  const detailLabel =
-    variant === 'sale'
-      ? item.itemCondition || 'Condition unknown'
-      : variant === 'lost'
-        ? item.lostLocation || 'Location unknown'
-        : item.foundLocation || 'Location unknown';
-
-  const ctaLabel = variant === 'sale' ? 'View Item' : variant === 'lost' ? 'Help Find' : 'Claim Item';
+  const statusLabel = getStatusLabel(variant);
+  const detailLabel = getDetailLabel(item, variant);
+  const ctaLabel = getCtaLabel(variant);
 
   const handleNavigate = () => {
     if (!item?._id) {
