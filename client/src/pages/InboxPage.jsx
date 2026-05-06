@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import MainFooter from '../components/layout/MainFooter';
 import MainNavbar from '../components/layout/MainNavbar';
 import ChatThreadPanel from '../components/messages/ChatThreadPanel';
+import ConfirmDialog from '../components/common/ConfirmDialog';
 import { useAuth } from '../hooks/useAuth';
 import {
   getApiErrorMessage,
@@ -11,6 +12,7 @@ import {
   getThreadWithUser,
   deleteConversation,
   sendMessage,
+  deleteConversation,
 } from '../services/api';
 import { connect as connectSocket } from '../utils/socket';
 
@@ -263,6 +265,7 @@ export default function InboxPage() {
   const [threadLoading, setThreadLoading] = useState(false);
   const [threadError, setThreadError] = useState('');
   const [sendingMessage, setSendingMessage] = useState(false);
+  const [deletingConversation, setDeletingConversation] = useState(false);
   const [deletingConversation, setDeletingConversation] = useState(false);
   const [conversations, setConversations] = useState([]);
   const [selectedConversationKey, setSelectedConversationKey] = useState('');
@@ -633,6 +636,17 @@ export default function InboxPage() {
           </div>
         </section>
       </main>
+
+      <ConfirmDialog
+        open={deleteConfirmOpen}
+        title="Delete conversation?"
+        message={`Delete the conversation with ${selectedConversation?.otherUser?.fullName || 'this user'}? This cannot be undone.`}
+        confirmLabel={deletingConversation ? 'Deleting...' : 'Delete'}
+        cancelLabel="Cancel"
+        destructive
+        onConfirm={confirmDeleteConversation}
+        onCancel={cancelDeleteConversation}
+      />
 
       <MainFooter />
     </div>

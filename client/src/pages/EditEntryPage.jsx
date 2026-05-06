@@ -1,9 +1,10 @@
 import { useMemo, useState, useEffect } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
-import { getApiErrorMessage, updateItem, getItemById } from '../services/api';
+import { getApiErrorMessage, updateItem, getItemById, deleteItem } from '../services/api';
 import { useAuth } from '../hooks/useAuth';
 import MainNavbar from '../components/layout/MainNavbar';
 import MainFooter from '../components/layout/MainFooter';
+import ConfirmDialog from '../components/common/ConfirmDialog';
 
 const MAX_IMAGES = 5;
 
@@ -69,6 +70,7 @@ export default function EditEntryPage() {
   const [successMessage, setSuccessMessage] = useState('');
   const [isNotOwner, setIsNotOwner] = useState(false);
   const [itemMetadata, setItemMetadata] = useState({ views: 0, inquiries: 0, postedDate: new Date() });
+  const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
 
   // Generate preview URLs for new images
   const newImagePreviews = useMemo(
@@ -399,19 +401,18 @@ export default function EditEntryPage() {
   };
 
   const onDeletePost = async () => {
-    if (!window.confirm('Are you sure you want to delete this post? This action cannot be undone.')) {
-      return;
-    }
-
     setError('');
     setIsSubmitting(true);
 
     try {
-      // TODO: Implement delete functionality when backend supports it
-      setError('Delete functionality coming soon');
-      setIsSubmitting(false);
+      await deleteItem(itemId);
+      setSuccessMessage('Post deleted successfully. Redirecting...');
+      setIsDeleteDialogOpen(false);
+      setTimeout(() => {
+        navigate('/marketplace', { replace: true });
+      }, 1500);
     } catch (requestError) {
-      setError(getApiErrorMessage(requestError, 'Could not delete your listing'));
+      setError(getApiErrorMessage(requestError, 'Could not delete your post'));
       setIsSubmitting(false);
     }
   };
@@ -874,7 +875,7 @@ export default function EditEntryPage() {
               {/* Action Buttons */}
               <div className="bg-surface-container-high px-0 py-5 border-t border-outline-variant/10 mt-8 flex justify-between items-center">
                 <button
-                  onClick={onDeletePost}
+                  onClick={() => setIsDeleteDialogOpen(true)}
                   disabled={isSubmitting}
                   className="text-error hover:bg-error-container hover:text-on-error-container px-4 py-2 rounded-md font-medium transition-colors text-sm flex items-center gap-2 disabled:opacity-60 disabled:cursor-not-allowed"
                   type="button"
@@ -948,6 +949,21 @@ export default function EditEntryPage() {
           </aside>
         </div>
       </main>
+
+      <ConfirmDialog
+        open={isDeleteDialogOpen}
+        title="Delete post?"
+        message={`Delete ${form.title || 'this post'} permanently? This action cannot be undone.`}
+        confirmLabel={isSubmitting ? 'Deleting...' : 'Delete'}
+        cancelLabel="Cancel"
+        destructive
+        onConfirm={onDeletePost}
+        onCancel={() => {
+          if (!isSubmitting) {
+            setIsDeleteDialogOpen(false);
+          }
+        }}
+      />
 
       <MainFooter />
     </div>

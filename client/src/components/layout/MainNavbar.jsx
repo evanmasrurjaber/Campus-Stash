@@ -77,6 +77,16 @@ export default function MainNavbar({ user, onLogout }) {
     navigate('/profile');
   };
 
+  const handleMyListingsClick = () => {
+    setIsProfileMenuOpen(false);
+    navigate('/my-listings');
+  };
+
+  const handleMyLostAndFoundClick = () => {
+    setIsProfileMenuOpen(false);
+    navigate('/my-lost-and-found');
+  };
+
   const handleLogoutClick = () => {
     setIsProfileMenuOpen(false);
     onLogout();
@@ -172,6 +182,7 @@ export default function MainNavbar({ user, onLogout }) {
                 <button
                   type="button"
                   className="flex w-full items-center gap-3 rounded-lg px-3 py-2 text-left text-sm font-medium text-on-surface transition-colors hover:bg-surface-container-low"
+                  onClick={handleMyListingsClick}
                   role="menuitem"
                 >
                   <span className="material-symbols-outlined text-base">inventory_2</span>
@@ -181,6 +192,7 @@ export default function MainNavbar({ user, onLogout }) {
                 <button
                   type="button"
                   className="flex w-full items-center gap-3 rounded-lg px-3 py-2 text-left text-sm font-medium text-on-surface transition-colors hover:bg-surface-container-low"
+                  onClick={handleMyLostAndFoundClick}
                   role="menuitem"
                 >
                   <span className="material-symbols-outlined text-base">search_hands_free</span>

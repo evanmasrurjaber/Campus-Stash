@@ -14,6 +14,8 @@ import ProfilePage from './pages/ProfilePage';
 import InboxPage from './pages/InboxPage';
 import MarketplacePage from './pages/MarketplacePage';
 import ItemDetailPage from './pages/ItemDetailPage';
+import MyListingsPage from './pages/MyListingsPage';
+import MyLostAndFoundPage from './pages/MyLostAndFoundPage';
 
 function App() {
   return (
@@ -33,6 +35,8 @@ function App() {
           <Route path="/profile" element={<ProfilePage />} />
           <Route path="/create-entry" element={<CreateEntryPage />} />
           <Route path="/inbox" element={<InboxPage />} />
+          <Route path="/my-listings" element={<MyListingsPage />} />
+          <Route path="/my-lost-and-found" element={<MyLostAndFoundPage />} />
           <Route path="/items/:itemId" element={<ItemDetailPage />} />
           <Route path="/items/:itemId/edit" element={<EditEntryPage />} />
         </Route>

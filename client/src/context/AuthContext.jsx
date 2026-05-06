@@ -18,6 +18,19 @@ import {
 
 import { AuthContext } from './AuthContextBase';
 
+const normalizeUser = (value) => {
+  if (!value) {
+    return null;
+  }
+
+  const id = value.id || value._id || '';
+  return {
+    ...value,
+    id,
+    _id: value._id || id,
+  };
+};
+
 export function AuthProvider({ children }) {
   const [user, setUser] = useState(null);
   const [isBootstrapping, setIsBootstrapping] = useState(true);
@@ -48,7 +61,7 @@ export function AuthProvider({ children }) {
       try {
         const currentUser = await fetchCurrentUser();
         if (active) {
-          setUser(currentUser);
+          setUser(normalizeUser(currentUser));
         }
       } catch {
         tokenStore.clear();
@@ -70,7 +83,7 @@ export function AuthProvider({ children }) {
     try {
       const data = await loginApi(credentials);
       tokenStore.set(data.accessToken);
-      setUser(data.user);
+      setUser(normalizeUser(data.user));
       return data;
     } catch (error) {
       // Check if it's an unverified email error (403)
@@ -136,7 +149,7 @@ export function AuthProvider({ children }) {
     try {
       const data = await verifyEmailApi(code);
       tokenStore.set(data.accessToken);
-      setUser(data.user);
+      setUser(normalizeUser(data.user));
       return data;
     } catch (error) {
       throw new Error(getApiErrorMessage(error, 'Email verification failed'));
