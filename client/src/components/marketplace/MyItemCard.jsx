@@ -27,7 +27,7 @@ export default function MyItemCard({ item, variant = 'sale', onDelete, onEdit })
   const handleDelete = (event) => {
     event.stopPropagation();
     if (onDelete) {
-      onDelete(item._id);
+      onDelete(item._id, item.title);
     }
   };
 

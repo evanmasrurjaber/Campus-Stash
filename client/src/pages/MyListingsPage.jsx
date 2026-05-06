@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import MainNavbar from '../components/layout/MainNavbar';
 import MainFooter from '../components/layout/MainFooter';
+import ConfirmDialog from '../components/common/ConfirmDialog';
 import MyItemCard from '../components/marketplace/MyItemCard';
 import { getItems, deleteItem, getApiErrorMessage } from '../services/api';
 import { useAuth } from '../hooks/useAuth';
@@ -15,6 +16,7 @@ export default function MyListingsPage() {
   const [error, setError] = useState('');
   const [deleteError, setDeleteError] = useState('');
   const [successMessage, setSuccessMessage] = useState('');
+  const [pendingDelete, setPendingDelete] = useState(null);
 
   const onLogout = () => {
     logout();
@@ -59,16 +61,25 @@ export default function MyListingsPage() {
     }
   }, [successMessage]);
 
-  const handleDeleteItem = async (itemId) => {
-    if (!window.confirm('Are you sure you want to delete this listing? This action cannot be undone.')) {
+  const handleDeleteItem = (itemId, itemTitle) => {
+    setPendingDelete({ itemId, itemTitle });
+  };
+
+  const closeDeleteDialog = () => {
+    setPendingDelete(null);
+  };
+
+  const confirmDeleteItem = async () => {
+    if (!pendingDelete?.itemId) {
       return;
     }
 
     try {
       setDeleteError('');
-      await deleteItem(itemId);
-      setItems((prev) => prev.filter((item) => item._id !== itemId));
+      await deleteItem(pendingDelete.itemId);
+      setItems((prev) => prev.filter((item) => item._id !== pendingDelete.itemId));
       setSuccessMessage('Listing deleted successfully');
+      setPendingDelete(null);
     } catch (err) {
       setDeleteError(getApiErrorMessage(err, 'Failed to delete listing'));
     }
@@ -207,6 +218,17 @@ export default function MyListingsPage() {
           </>
         )}
       </main>
+
+      <ConfirmDialog
+        open={Boolean(pendingDelete)}
+        title="Delete listing?"
+        message={`Delete ${pendingDelete?.itemTitle || 'this listing'} permanently? This action cannot be undone.`}
+        confirmLabel="Delete"
+        cancelLabel="Cancel"
+        destructive
+        onConfirm={confirmDeleteItem}
+        onCancel={closeDeleteDialog}
+      />
 
       <MainFooter />
     </div>
