@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import MainFooter from '../components/layout/MainFooter';
 import MainNavbar from '../components/layout/MainNavbar';
 import ChatThreadPanel from '../components/messages/ChatThreadPanel';
+import ConfirmDialog from '../components/common/ConfirmDialog';
 import { useAuth } from '../hooks/useAuth';
 import {
   getApiErrorMessage,
@@ -264,6 +265,7 @@ export default function InboxPage() {
   const [threadError, setThreadError] = useState('');
   const [sendingMessage, setSendingMessage] = useState(false);
   const [deletingConversation, setDeletingConversation] = useState(false);
+  const [deleteConfirmOpen, setDeleteConfirmOpen] = useState(false);
   const [conversations, setConversations] = useState([]);
   const [selectedConversationKey, setSelectedConversationKey] = useState('');
   const [threadMessages, setThreadMessages] = useState([]);
@@ -520,15 +522,17 @@ export default function InboxPage() {
       return;
     }
 
-    const otherUserName = selectedConversation?.otherUser?.fullName || 'this user';
-    const confirmed = window.confirm(`Delete the conversation with ${otherUserName}? This cannot be undone.`);
+    setDeleteConfirmOpen(true);
+  };
 
-    if (!confirmed) {
+  const confirmDeleteConversation = async () => {
+    if (!selectedConversation || deletingConversation) {
       return;
     }
 
     setDeletingConversation(true);
     setThreadError('');
+    setDeleteConfirmOpen(false);
 
     try {
       await deleteConversation(
@@ -543,6 +547,14 @@ export default function InboxPage() {
     } finally {
       setDeletingConversation(false);
     }
+  };
+
+  const cancelDeleteConversation = () => {
+    if (deletingConversation) {
+      return;
+    }
+
+    setDeleteConfirmOpen(false);
   };
 
   const showChatPanelOnMobile = Boolean(selectedConversation);
@@ -633,6 +645,17 @@ export default function InboxPage() {
           </div>
         </section>
       </main>
+
+      <ConfirmDialog
+        open={deleteConfirmOpen}
+        title="Delete conversation?"
+        message={`Delete the conversation with ${selectedConversation?.otherUser?.fullName || 'this user'}? This cannot be undone.`}
+        confirmLabel={deletingConversation ? 'Deleting...' : 'Delete'}
+        cancelLabel="Cancel"
+        destructive
+        onConfirm={confirmDeleteConversation}
+        onCancel={cancelDeleteConversation}
+      />
 
       <MainFooter />
     </div>
