@@ -102,15 +102,21 @@ const sendMessage = async (req, res) => {
       postImageUrl,
     };
 
+    const notificationPayload = {
+      ...notification.toJSON(),
+      postTitle,
+      postImageUrl,
+    };
+
     const io = getIO();
     if (io) {
       io.to(String(recipientId)).emit('notification_received', {
-        notification,
+        notification: notificationPayload,
         actor: req.user,
       });
       io.to(String(recipientId)).emit('message_received', {
         message: messagePayload,
-        notification,
+        notification: notificationPayload,
       });
     }
 

@@ -1,11 +1,13 @@
-import { useCallback, useEffect, useMemo, useState } from 'react';
+import { useCallback, useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import MainFooter from '../components/layout/MainFooter';
 import MainNavbar from '../components/layout/MainNavbar';
+import { useNotifications } from '../context/NotificationContext';
 import { useAuth } from '../hooks/useAuth';
 import {
   getApiErrorMessage,
   getNotifications,
+  getUnreadNotificationCount,
   markNotificationAsRead,
   markAllNotificationsAsRead,
 } from '../services/api';
@@ -57,9 +59,23 @@ const formatRelativeTime = (isoDateString) => {
   return `${diffYears}y ago`;
 };
 
-function NotificationItem({ notification, isRead, onMarkAsRead }) {
+const toIdString = (value) => {
+  if (!value) {
+    return '';
+  }
+
+  if (typeof value === 'string') {
+    return value;
+  }
+
+  return String(value._id || value.id || value);
+};
+
+function NotificationItem({ notification, isRead, onMarkAsRead, onNavigate }) {
   const [failedImageUrl, setFailedImageUrl] = useState('');
   const actorAvatarUrl = notification?.actor?.avatar?.url || '';
+  const postTitle = notification?.postTitle?.trim() || 'CampusStash Post';
+  const postImageUrl = notification?.postImageUrl || '';
 
   const handleClick = async () => {
     if (!isRead) {
@@ -69,6 +85,8 @@ function NotificationItem({ notification, isRead, onMarkAsRead }) {
         console.error('Error marking notification as read:', error);
       }
     }
+
+    onNavigate?.(notification);
   };
 
   const actorInitials =
@@ -90,36 +108,56 @@ function NotificationItem({ notification, isRead, onMarkAsRead }) {
       }`}
     >
       <div className="flex items-start gap-3">
-        {actorAvatarUrl && failedImageUrl !== actorAvatarUrl ? (
-          <img
-            src={actorAvatarUrl}
-            alt={notification?.actor?.fullName}
-            className="h-11 w-11 flex-shrink-0 rounded-full object-cover"
-            onError={() => setFailedImageUrl(actorAvatarUrl)}
-          />
-        ) : (
-          <span className="inline-flex h-11 w-11 flex-shrink-0 items-center justify-center rounded-full bg-primary-container text-xs font-bold text-on-primary-container">
-            {actorInitials}
-          </span>
-        )}
+        <div className="relative mt-3 flex-shrink-0">
+          {actorAvatarUrl && failedImageUrl !== actorAvatarUrl ? (
+            <img
+              src={actorAvatarUrl}
+              alt={notification?.actor?.fullName}
+              className="h-11 w-11 rounded-full object-cover"
+              onError={() => setFailedImageUrl(actorAvatarUrl)}
+            />
+          ) : (
+            <span className="inline-flex h-11 w-11 items-center justify-center rounded-full bg-primary-container text-xs font-bold text-on-primary-container">
+              {actorInitials}
+            </span>
+          )}
 
-        <div className="min-w-0 flex-1">
-          <div className="flex items-start justify-between gap-2">
+          {postImageUrl ? (
+            <img
+              src={postImageUrl}
+              alt={postTitle}
+              className="absolute -bottom-2 -right-2 h-7 w-7 rounded-md border-2 border-surface object-cover"
+            />
+          ) : (
+            <span className="absolute -bottom-2 -right-2 flex h-7 w-7 items-center justify-center rounded-md border-2 border-surface bg-surface-container-high text-outline">
+              <span className="material-symbols-outlined text-[14px]">image</span>
+            </span>
+          )}
+        </div>
+
+        <div className="flex min-w-0 flex-1 items-start gap-3">
+          <div className="min-w-0 flex-1">
             <p className="text-sm font-bold text-on-surface">
               {notification?.actor?.fullName || 'User'} sent you a message
             </p>
+            <p className="mt-1 text-xs font-semibold uppercase tracking-widest text-outline">
+              {postTitle}
+            </p>
+
+            <p className="mt-2 text-xs text-on-surface-variant line-clamp-2">{notification?.body}</p>
+
+            {!isRead ? (
+              <span className="mt-2 inline-flex rounded-full bg-primary/10 px-2 py-0.5 text-[10px] font-semibold uppercase tracking-widest text-primary">
+                New
+              </span>
+            ) : null}
+          </div>
+
+          <div className="flex flex-shrink-0 flex-col items-start">
             <span className="text-[10px] font-semibold text-outline">
               {formatRelativeTime(notification?.createdAt)}
             </span>
           </div>
-
-          <p className="mt-2 text-xs text-on-surface-variant line-clamp-2">{notification?.body}</p>
-
-          {!isRead ? (
-            <span className="mt-2 inline-flex rounded-full bg-primary/10 px-2 py-0.5 text-[10px] font-semibold uppercase tracking-widest text-primary">
-              New
-            </span>
-          ) : null}
         </div>
       </div>
     </button>
@@ -128,6 +166,7 @@ function NotificationItem({ notification, isRead, onMarkAsRead }) {
 
 export default function NotificationsPage() {
   const { user, logout, refreshCurrentUser } = useAuth();
+  const { decrementUnreadCount, fetchUnreadCount, markAllAsRead: markAllUnreadInContext } = useNotifications();
   const navigate = useNavigate();
 
   const [isLoading, setIsLoading] = useState(true);
@@ -136,16 +175,20 @@ export default function NotificationsPage() {
   const [page, setPage] = useState(1);
   const [totalPages, setTotalPages] = useState(1);
   const [hasUnreadNotifications, setHasUnreadNotifications] = useState(false);
+  const [unreadCount, setUnreadCount] = useState(0);
 
   const fetchNotifications = useCallback(async (pageNum = 1) => {
     try {
       setIsLoading(true);
       setError('');
       const response = await getNotifications(pageNum);
+      const unreadResponse = await getUnreadNotificationCount();
 
       setNotifications(response.data.notifications);
       setTotalPages(response.data.pagination.totalPages);
       setPage(pageNum);
+      setUnreadCount(unreadResponse.data.unreadCount || 0);
+      fetchUnreadCount();
 
       const hasUnread = response.data.notifications.some((notif) => !notif.isRead);
       setHasUnreadNotifications(hasUnread);
@@ -167,6 +210,9 @@ export default function NotificationsPage() {
           ),
         );
 
+        setUnreadCount((current) => Math.max(current - 1, 0));
+        decrementUnreadCount();
+
         const hasUnread = notifications.some((notif) => notif._id !== notificationId && !notif.isRead);
         setHasUnreadNotifications(hasUnread);
       } catch (err) {
@@ -176,6 +222,22 @@ export default function NotificationsPage() {
     [notifications],
   );
 
+  const handleOpenNotification = useCallback(
+    (notification) => {
+      const postId = toIdString(notification?.postId);
+      const postType = notification?.postType || '';
+      const otherUserId = toIdString(notification?.actor);
+
+      if (!postId || !postType || !otherUserId) {
+        return;
+      }
+
+      const query = new URLSearchParams({ postId, postType, otherUserId }).toString();
+      navigate(`/inbox?${query}`);
+    },
+    [navigate],
+  );
+
   const handleMarkAllAsRead = useCallback(async () => {
     try {
       await markAllNotificationsAsRead();
@@ -183,6 +245,8 @@ export default function NotificationsPage() {
         prevNotifications.map((notif) => ({ ...notif, isRead: true })),
       );
       setHasUnreadNotifications(false);
+      setUnreadCount(0);
+      markAllUnreadInContext();
     } catch (err) {
       setError(getApiErrorMessage(err, 'Failed to mark all as read'));
     }
@@ -207,6 +271,7 @@ export default function NotificationsPage() {
             ...prev,
           ];
           setHasUnreadNotifications(true);
+          setUnreadCount((current) => current + 1);
           return newNotifications;
         });
       };
@@ -235,7 +300,7 @@ export default function NotificationsPage() {
             <p className="mt-1 text-sm text-on-surface-variant">
               {notifications.length === 0
                 ? 'No notifications yet'
-                : `You have ${notifications.filter((n) => !n.isRead).length} unread notification${notifications.filter((n) => !n.isRead).length !== 1 ? 's' : ''}`}
+                : `You have ${unreadCount} unread notification${unreadCount !== 1 ? 's' : ''}`}
             </p>
           </div>
 
@@ -278,6 +343,7 @@ export default function NotificationsPage() {
                   notification={notification}
                   isRead={notification.isRead}
                   onMarkAsRead={handleMarkAsRead}
+                  onNavigate={handleOpenNotification}
                 />
               ))}
             </div>
@@ -294,7 +360,7 @@ export default function NotificationsPage() {
                 Previous
               </button>
               <p className="text-sm text-on-surface-variant">
-                Page {page} of {totalPages}
+                {unreadCount} unread notification{unreadCount !== 1 ? 's' : ''}
               </p>
               <button
                 type="button"

@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useMemo, useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useLocation, useNavigate } from 'react-router-dom';
 import MainFooter from '../components/layout/MainFooter';
 import MainNavbar from '../components/layout/MainNavbar';
 import ChatThreadPanel from '../components/messages/ChatThreadPanel';
@@ -257,6 +257,7 @@ function ConversationRow({ conversation, active, onClick }) {
 export default function InboxPage() {
   const { user, logout, refreshCurrentUser } = useAuth();
   const navigate = useNavigate();
+  const location = useLocation();
 
   const [profile, setProfile] = useState(user);
   const [inboxLoading, setInboxLoading] = useState(true);
@@ -270,6 +271,19 @@ export default function InboxPage() {
   const [selectedConversationKey, setSelectedConversationKey] = useState('');
   const [threadMessages, setThreadMessages] = useState([]);
   const [searchTerm, setSearchTerm] = useState('');
+
+  const preselectedConversationKey = useMemo(() => {
+    const params = new URLSearchParams(location.search || '');
+    const postId = params.get('postId') || '';
+    const postType = params.get('postType') || '';
+    const otherUserId = params.get('otherUserId') || '';
+
+    if (!postId || !postType || !otherUserId) {
+      return '';
+    }
+
+    return `${postType}:${postId}:${otherUserId}`;
+  }, [location.search]);
 
   const selectedConversation = useMemo(
     () => conversations.find((conversation) => conversation.key === selectedConversationKey) || null,
@@ -476,12 +490,12 @@ export default function InboxPage() {
     const previousBodyClass = document.body.className;
     document.body.className = 'bg-surface font-body text-on-surface min-h-screen';
 
-    fetchInboxData();
+    fetchInboxData(preselectedConversationKey);
 
     return () => {
       document.body.className = previousBodyClass;
     };
-  }, [fetchInboxData]);
+  }, [fetchInboxData, preselectedConversationKey]);
 
   const handleLogout = () => {
     logout();

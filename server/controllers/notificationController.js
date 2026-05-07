@@ -1,4 +1,5 @@
 const Notification = require('../models/Notification');
+const Item = require('../models/Item');
 const { getIO } = require('../utils/socket');
 
 const PAGE_LIMIT = 20;
@@ -16,6 +17,29 @@ const getNotifications = async (req, res) => {
       .skip(skip)
       .limit(PAGE_LIMIT);
 
+    const postIds = Array.from(
+      new Set(notifications.map((notification) => notification.postId).filter(Boolean)),
+    );
+    const itemMap = new Map();
+
+    if (postIds.length > 0) {
+      const items = await Item.find({ _id: { $in: postIds } }).select('title images');
+      items.forEach((item) => {
+        itemMap.set(String(item._id), item);
+      });
+    }
+
+    const hydratedNotifications = notifications.map((notification) => {
+      const postId = notification.postId ? String(notification.postId) : '';
+      const item = postId ? itemMap.get(postId) : null;
+
+      return {
+        ...notification.toJSON(),
+        postTitle: item?.title || '',
+        postImageUrl: item?.images?.[0]?.url || '',
+      };
+    });
+
     const totalCount = await Notification.countDocuments({ recipient: userId });
     const totalPages = Math.ceil(totalCount / PAGE_LIMIT);
 
@@ -23,7 +47,7 @@ const getNotifications = async (req, res) => {
       success: true,
       message: 'Notifications fetched successfully',
       data: {
-        notifications,
+        notifications: hydratedNotifications,
         pagination: {
           currentPage: pageNumber,
           totalPages,
