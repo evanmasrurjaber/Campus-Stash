@@ -873,20 +873,20 @@ export default function EditEntryPage() {
               </form>
 
               {/* Action Buttons */}
-              <div className="bg-surface-container-high px-0 py-5 border-t border-outline-variant/10 mt-8 flex justify-between items-center">
+              <div className="mt-8 flex flex-col gap-3 rounded-xl border border-outline-variant/10 bg-surface-container-low px-6 py-5 sm:flex-row sm:items-center sm:justify-between sm:flex-nowrap">
                 <button
                   onClick={() => setIsDeleteDialogOpen(true)}
                   disabled={isSubmitting}
-                  className="text-error hover:bg-error-container hover:text-on-error-container px-4 py-2 rounded-md font-medium transition-colors text-sm flex items-center gap-2 disabled:opacity-60 disabled:cursor-not-allowed"
+                  className="text-error hover:bg-error-container hover:text-on-error-container px-3 py-2 rounded-md font-medium transition-colors text-xs flex items-center gap-2 disabled:opacity-60 disabled:cursor-not-allowed"
                   type="button"
                 >
                   <span className="material-symbols-outlined text-[18px]">delete_forever</span>
                   Delete Post
                 </button>
-                <div className="flex gap-4">
+                <div className="flex flex-nowrap gap-2">
                   <button
                     onClick={() => navigate(`/items/${itemId}`)}
-                    className="text-primary hover:bg-surface-container-highest px-6 py-2 rounded-md font-medium transition-colors text-sm disabled:opacity-60 disabled:cursor-not-allowed"
+                    className="text-primary hover:bg-surface-container-highest px-4 py-2 rounded-md font-medium transition-colors text-xs disabled:opacity-60 disabled:cursor-not-allowed"
                     type="button"
                     disabled={isSubmitting}
                   >
@@ -895,7 +895,7 @@ export default function EditEntryPage() {
                   <button
                     onClick={onSubmit}
                     disabled={isSubmitting}
-                    className="bg-gradient-to-br from-primary to-primary-container text-on-primary px-8 py-2 rounded-md font-medium shadow-sm hover:shadow-md transition-all text-sm disabled:opacity-60 disabled:cursor-not-allowed"
+                    className="bg-gradient-to-br from-primary to-primary-container text-on-primary px-5 py-2 rounded-md font-medium shadow-sm hover:shadow-md transition-all text-xs disabled:opacity-60 disabled:cursor-not-allowed"
                     type="button"
                   >
                     {isSubmitting ? 'Saving...' : 'Save Changes'}
