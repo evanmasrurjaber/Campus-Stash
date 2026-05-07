@@ -1,6 +1,8 @@
 const mongoose = require('mongoose');
 const cloudinary = require('cloudinary').v2;
 const Item = require('../models/Item');
+const Notification = require('../models/Notification');
+const { getIO } = require('../utils/socket');
 
 const normalizeTags = (rawTags) => {
   const source = Array.isArray(rawTags) ? rawTags : [rawTags];
@@ -17,6 +19,8 @@ const mapUploadedImages = (files = []) =>
       public_id: file.filename || file.public_id,
     }))
     .filter((image) => image.url && image.public_id);
+
+const escapeRegex = (value) => String(value).replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
 
 const createItem = async (req, res) => {
   try {
@@ -157,6 +161,69 @@ const createItem = async (req, res) => {
     const item = await Item.create(itemData);
 
     await item.populate('reportedBy', 'fullName email studentId');
+
+    if (itemType === 'found') {
+      try {
+        const hasCategory = Boolean(category);
+        const hasTags = Array.isArray(tags) && tags.length > 0;
+
+        if (hasCategory || hasTags) {
+          const categoryRegex = hasCategory
+            ? new RegExp(`^${escapeRegex(category)}$`, 'i')
+            : null;
+
+          const matchFilters = [];
+          if (categoryRegex) {
+            matchFilters.push({ category: categoryRegex });
+          }
+          if (hasTags) {
+            matchFilters.push({ tags: { $in: tags } });
+          }
+
+          const lostReporterIds = await Item.distinct('reportedBy', {
+            itemType: 'lost',
+            reportedBy: { $ne: req.user._id },
+            ...(matchFilters.length > 1 ? { $or: matchFilters } : matchFilters[0]),
+          });
+
+          if (lostReporterIds.length > 0) {
+            const titleSuffix = hasCategory ? ` in ${category}` : '';
+            const tagHint = hasTags ? ` Tags: ${tags.slice(0, 4).join(', ')}.` : '';
+            const notifications = await Notification.insertMany(
+              lostReporterIds.map((recipientId) => ({
+                recipient: recipientId,
+                actor: req.user._id,
+                type: 'lost_item_match',
+                title: `Found item matches your lost post${titleSuffix}`,
+                body: `${req.user.fullName || 'Someone'} posted a found item titled "${title}".${tagHint}`,
+                postId: item._id,
+                postType: 'foundItem',
+              })),
+            );
+
+            await Notification.populate(notifications, { path: 'actor', select: 'fullName avatar' });
+
+            const io = getIO();
+            if (io) {
+              const notificationPayloads = notifications.map((notification) => ({
+                ...notification.toJSON(),
+                postTitle: item.title || '',
+                postImageUrl: item.images?.[0]?.url || '',
+              }));
+
+              notificationPayloads.forEach((notificationPayload) => {
+                io.to(String(notificationPayload.recipient)).emit('notification_received', {
+                  notification: notificationPayload,
+                  actor: notificationPayload.actor,
+                });
+              });
+            }
+          }
+        }
+      } catch (notificationError) {
+        console.error('Found item notification error:', notificationError.message);
+      }
+    }
 
     return res.status(201).json({
       success: true,

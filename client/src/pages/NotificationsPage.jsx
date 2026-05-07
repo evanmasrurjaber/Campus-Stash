@@ -73,9 +73,11 @@ const toIdString = (value) => {
 
 function NotificationItem({ notification, isRead, onMarkAsRead, onNavigate }) {
   const [failedImageUrl, setFailedImageUrl] = useState('');
+  const actorName = notification?.actor?.fullName || 'User';
   const actorAvatarUrl = notification?.actor?.avatar?.url || '';
   const postTitle = notification?.postTitle?.trim() || 'CampusStash Post';
   const postImageUrl = notification?.postImageUrl || '';
+  const displayTitle = notification?.title || `${actorName} sent you a message`;
 
   const handleClick = async () => {
     if (!isRead) {
@@ -137,9 +139,7 @@ function NotificationItem({ notification, isRead, onMarkAsRead, onNavigate }) {
 
         <div className="flex min-w-0 flex-1 items-start gap-3">
           <div className="min-w-0 flex-1">
-            <p className="text-sm font-bold text-on-surface">
-              {notification?.actor?.fullName || 'User'} sent you a message
-            </p>
+            <p className="text-sm font-bold text-on-surface">{displayTitle}</p>
             <p className="mt-1 text-xs font-semibold uppercase tracking-widest text-outline">
               {postTitle}
             </p>
@@ -227,6 +227,11 @@ export default function NotificationsPage() {
       const postId = toIdString(notification?.postId);
       const postType = notification?.postType || '';
       const otherUserId = toIdString(notification?.actor);
+
+      if (notification?.type === 'lost_item_match' && postId) {
+        navigate(`/items/${postId}`);
+        return;
+      }
 
       if (!postId || !postType || !otherUserId) {
         return;

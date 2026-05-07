@@ -18,7 +18,14 @@ const notificationSchema = new mongoose.Schema(
       type: String,
       required: [true, 'Notification type is required'],
       enum: {
-        values: ['message_received', 'message_reply', 'listing_update', 'lost_item_update', 'system'],
+        values: [
+          'message_received',
+          'message_reply',
+          'listing_update',
+          'lost_item_update',
+          'lost_item_match',
+          'system',
+        ],
         message: 'Invalid notification type',
       },
       index: true,
