@@ -490,6 +490,8 @@ export default function InboxPage() {
     const previousBodyClass = document.body.className;
     document.body.className = 'bg-surface font-body text-on-surface min-h-screen';
 
+    window.scrollTo({ top: 0, left: 0, behavior: 'auto' });
+
     fetchInboxData(preselectedConversationKey);
 
     return () => {
