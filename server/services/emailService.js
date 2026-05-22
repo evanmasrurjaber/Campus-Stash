@@ -5,16 +5,22 @@ const createTransporter = () => {
     throw new Error('SMTP credentials are not configured');
   }
 
+  const port = Number(process.env.SMTP_PORT) || 465;
+
   return nodemailer.createTransport({
     host: process.env.SMTP_HOST || 'smtp.gmail.com',
-    port: process.env.SMTP_PORT || 465,
-    secure: process.env.SMTP_PORT == '465' ? true : true, // use TLS
+    port,
+    secure: port === 465, // true for 465, false for 587
     auth: {
       user: process.env.SMTP_USER,
       pass: process.env.SMTP_PASSWORD,
     },
     // Prevent IPv6 failure by forcing IPv4
-    family: 4
+    family: 4,
+    tls: {
+      // Allow STARTTLS on 587 without hard failure on cert mismatch
+      rejectUnauthorized: true,
+    },
   });
 };
 
