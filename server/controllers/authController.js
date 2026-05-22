@@ -131,15 +131,19 @@ const signup = async (req, res) => {
     user.verificationTokenExpiry = new Date(Date.now() + 10 * 60 * 1000);
     await user.save();
 
-    await sendVerificationEmail({
-      to: user.email,
-      fullName: user.fullName,
-      token: verificationRawToken,
-    });
+    try {
+      await sendVerificationEmail({
+        to: user.email,
+        fullName: user.fullName,
+        token: verificationRawToken,
+      });
+    } catch (emailError) {
+      console.error('Failed to send verification email:', emailError.message);
+    }
 
     return res.status(201).json({
       success: true,
-      message: 'Signup successful. Verification code sent to email.',
+      message: 'Signup successful. Verification code sent to email (if configured).',
       user: buildUserResponse(user),
     });
   } catch (error) {
@@ -259,15 +263,19 @@ const login = async (req, res) => {
       user.verificationTokenExpiry = new Date(Date.now() + 10 * 60 * 1000);
       await user.save();
 
-      await sendVerificationEmail({
-        to: user.email,
-        fullName: user.fullName,
-        token: verificationRawToken,
-      });
+      try {
+        await sendVerificationEmail({
+          to: user.email,
+          fullName: user.fullName,
+          token: verificationRawToken,
+        });
+      } catch (emailError) {
+        console.error('Failed to send verification email:', emailError.message);
+      }
 
       return res.status(403).json({
         success: false,
-        message: 'Account is not verified yet. A new verification code has been sent to your email.',
+        message: 'Account is not verified yet. A new verification code has been sent to your email (if possible).',
       });
     }
 
@@ -307,11 +315,15 @@ const forgotPassword = async (req, res) => {
       user.resetPasswordTokenExpiry = new Date(Date.now() + 10 * 60 * 1000);
       await user.save();
 
-      await sendPasswordResetEmail({
-        to: user.email,
-        fullName: user.fullName,
-        token: resetRawToken,
-      });
+      try {
+        await sendPasswordResetEmail({
+          to: user.email,
+          fullName: user.fullName,
+          token: resetRawToken,
+        });
+      } catch (emailError) {
+        console.error('Failed to send password reset email:', emailError.message);
+      }
     }
 
     return res.status(200).json({
@@ -406,11 +418,15 @@ const resendVerification = async (req, res) => {
       user.verificationTokenExpiry = new Date(Date.now() + 10 * 60 * 1000);
       await user.save();
 
-      await sendVerificationEmail({
-        to: user.email,
-        fullName: user.fullName,
-        token: verificationRawToken,
-      });
+      try {
+        await sendVerificationEmail({
+          to: user.email,
+          fullName: user.fullName,
+          token: verificationRawToken,
+        });
+      } catch (emailError) {
+        console.error('Failed to resend verification email:', emailError.message);
+      }
     }
 
     return res.status(200).json({
