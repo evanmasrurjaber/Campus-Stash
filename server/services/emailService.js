@@ -9,7 +9,6 @@ const createTransporter = () => {
     host: process.env.SMTP_HOST || 'smtp.gmail.com',
     port: process.env.SMTP_PORT || 465,
     secure: process.env.SMTP_PORT == '465' ? true : true, // use TLS
-    service: process.env.SMTP_SERVICE || 'gmail',
     auth: {
       user: process.env.SMTP_USER,
       pass: process.env.SMTP_PASSWORD,
