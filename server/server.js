@@ -1,8 +1,11 @@
 const express = require('express');
 const cors = require('cors');
 const dotenv = require('dotenv');
+const dns = require('dns');
 
 dotenv.config();
+// Prefer IPv4 to avoid SMTP IPv6 routing failures.
+dns.setDefaultResultOrder('ipv4first');
 const http = require('http');
 const { Server } = require('socket.io');
 
