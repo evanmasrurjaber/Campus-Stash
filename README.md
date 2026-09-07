@@ -2,7 +2,10 @@
 
 A unified marketplace and lost & found platform built specifically for university students. CampusStash connects students on campus to buy, sell, trade, and recover lost items in a secure, real-time environment.
 
-**🌐 Live Demo → [campus-stash.vercel.app](#)**
+### 🌐 Live Demo
+**Link: [campus-stash.vercel.app](https://campus-stash.vercel.app/)**
+ - Email: testuser@g.bracu.ac.bd
+ - Password: Testuser@123
 
 ---
 
